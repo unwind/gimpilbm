@@ -1,0 +1,29 @@
+ *  Changes:
+ *
+ *    0.8.7    o Expanded HAM loading routines to support
+ *               HAM3-5, HAM7 and HAM8, too
+ *    0.8.8    o Changed lots of variables to be typeproof (and
+ *               working) on machines with long!=32bit and so on.
+ *             o Removed any GCC dependancies (dynamically allocated
+ *               arrays)
+ *             o Made it compile with g++ -O6 -Wall -W -Wno-unused
+ *               -ansi -pedantic without any moan (C++ proof)
+ *             o Changed width alignment to be always a factor
+ *               of 16 (word boundaries per plane). This *might*
+ *               OTOH break files saved with byte boundaries in
+ *               mind, but I think word boundaries are more
+ *               correct (since this is the way Amiga hardware
+ *               works)
+ *             o Supports IFF-RGBN 12bit pictures including
+ *               1bit genlock (alpha channel)
+ *             o Piece o' IFF-RGB8 24bit picture support added
+ *             o Optimized header recognition by avoiding strings
+ *             o A lot of the IFF file i/o code rewritten from scratch
+ *             o Added support for ILBM-DEST. Untested, since I
+ *               do not have such files.
+ *             o Now writes CAMG chunks when useful
+ *             o Quick hack to support oversized (ignored) chunks.
+ *               Only until the new IFF routines are ready.
+ *             o Added support for loading of DPaint-IIe pictures
+ *               (IFF-PBM or IPBM)
+ *             o Now checks palette indices for valid ranges

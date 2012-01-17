@@ -1,0 +1,60 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(ilbm.c)
+AM_INIT_AUTOMAKE(gimpilbm, 0.8.8)
+
+AC_ARG_WITH(gimp,
+[  --with-gimp=DIR         Gimp directory to install to [$HOME/.gimp]],
+gimpdir=$withval,
+gimpdir=$HOME/.gimp)
+gimpplugindir=$gimpdir/plug-ins
+AC_SUBST(gimpdir)
+AC_SUBST(gimpplugindir)
+
+AC_ARG_WITH(debug,
+[  --with-debug=[no|verbose|debug]
+                          Hardcoded debugging (output) level [debug]],
+debuglevel=$withval,
+debuglevel=no)
+debugflags="-DDEBUGLEVEL=0 -DG_DISABLE_ASSERT -DNDEBUG"
+
+case $debuglevel in
+  verbose)
+    debugflags="-DDEBUGLEVEL=1 -DG_DISABLE_ASSERT"
+  ;;
+  debug)
+    debugflags="-DDEBUGLEVEL=2"
+  ;;
+esac
+
+AC_SUBST(debuglevel)
+AC_SUBST(debugflags)
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_INSTALL
+AC_PROG_CC
+AC_PROG_LN_S
+
+AC_PATH_PROG(GIMPTOOL,gimptool)
+dnl AC_PATH_PROG(GTKCONFIG,gtk-config)
+
+dnl Checks for libraries.
+dnl AC_CHECK_LIB(X11, main)
+dnl AC_CHECK_LIB(Xext, main)
+dnl AC_CHECK_LIB(Xi, main)
+dnl AC_CHECK_LIB(gdk, main)
+dnl AC_CHECK_LIB(gtk, main)
+dnl AC_CHECK_LIB(glib, main)
+dnl AC_CHECK_LIB(gimp, main)
+dnl AC_CHECK_LIB(m, cos)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+dnl AC_PATH_XTRA
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile)
