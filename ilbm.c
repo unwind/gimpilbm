@@ -7,7 +7,6 @@
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 
-#include "oldgimp.h"
 #include "plugin.h"
 #include "gui.h"
 #include "iff.h"

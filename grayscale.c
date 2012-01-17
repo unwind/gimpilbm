@@ -1,4 +1,3 @@
-#include "oldgimp.h"
 #include "grayscale.h"
 
 /**** Grayscale ****/

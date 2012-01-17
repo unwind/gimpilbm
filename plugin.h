@@ -15,11 +15,7 @@ typedef struct {
   gint run;
 } ILBMSaveInterface;
 
-#ifdef OLDGIMP
-  typedef struct GPlugInInfo PluginStructType;
-#else
-  typedef struct _GimpPlugInInfo PluginStructType;
-#endif
+typedef struct _GimpPlugInInfo PluginStructType;
 
 extern ILBMSaveVals ilbmvals;
 extern ILBMSaveInterface ilbmint;

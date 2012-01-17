@@ -1,5 +1,3 @@
-#include "oldgimp.h"
-
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 

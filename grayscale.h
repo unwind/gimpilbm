@@ -1,7 +1,6 @@
 #ifndef grayscale_h
 #define grayscale_h
 
-#include "oldgimp.h"
 #include "ilbm.h"
 
 /**** Grayscale ****/
