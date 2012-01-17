@@ -90,16 +90,13 @@ saveDialog(void)
   /* Let's face it */
 
   dlg = gimp_dialog_new ("Save as IFF", "iff",
+                         NULL,
+                         0,
                          gimp_standard_help_func, "filters/iff.html",
-                         GTK_WIN_POS_MOUSE,
                          FALSE, TRUE, FALSE,
                          /* #1 */
-                         "OK", saveOkCallback,
-                         NULL, NULL, NULL, TRUE, FALSE,
-                         /* #2 */
-                         "Cancel", gtk_widget_destroy,
-                         NULL, 1, NULL, FALSE, TRUE,	/* 1 == slot_object? */
-                         /* #0 */
+                         GTK_STOCK_OK, GTK_RESPONSE_OK,
+                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                          NULL);
 
   gtk_signal_connect (GTK_OBJECT(dlg), "destroy", GTK_SIGNAL_FUNC(gtk_main_quit), NULL);
