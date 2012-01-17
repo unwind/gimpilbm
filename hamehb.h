@@ -1,6 +1,7 @@
 #ifndef hamehb_h
 #define hamehb_h
 
+#include <stdlib.h>
 #include <glib.h>
 #include "ilbm.h"
 

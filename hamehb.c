@@ -157,11 +157,12 @@ deHam(grayval * dest, const palidx * src, gint width, guint16 depth,
   bmask = (1 << depth) - 1;
   if (width && (*src >> depth)) {
     /* FIXME: only once */
+    /* Note: ADPro takes last pixel of previous row as default.. */
     fputs("Warning: HAM line starts with undefined color. Setting to black.\n", stderr);
   }
   while (width--) {
     guint8 idx = *src++;
-    switch (idx >> depth) {     /* ham5 only */
+    switch (idx >> depth) {
       default:
         cr = cmap[((short) idx) * 3 + 0];
         cg = cmap[((short) idx) * 3 + 1];

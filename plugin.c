@@ -1,3 +1,5 @@
+#include "oldgimp.h"
+
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 
@@ -5,15 +7,17 @@
 #include "gui.h"
 #include "plugin.h"
 
+#include <string.h>
+
 /**** Prototypes ****/
 
 static void queryPlugin(void);
-static void runPlugin(char *name, int nparams, GParam * param,
-                      int *nreturn_vals, GParam ** return_vals);
+static void runPlugin(char *name, int nparams, GimpParam * param,
+                      int *nreturn_vals, GimpParam ** return_vals);
 
 /**** Plugin data ****/
 
-const GPlugInInfo PLUG_IN_INFO =
+const PluginStructType PLUG_IN_INFO =
 {
   NULL,		/* init_proc  */
   NULL,		/* quit_proc  */
@@ -25,6 +29,7 @@ ILBMSaveVals ilbmvals =
 {
   0.50,		/* alpha threshold */
   1,
+  0,
   0,
   0
 };
@@ -38,7 +43,7 @@ ILBMSaveInterface ilbmint =
 
 const char loadFuncID[] = "file_ilbm_load";
 const char saveFuncID[] = "file_ilbm_save";
-const char nameExtensions[] = "ilbm,iff,lbm";
+const char nameExtensions[] = "ilbm,iff,lbm,acb,ham";
 
 /**** main() ****/
 
@@ -57,7 +62,7 @@ main(int argc, char **argv)
 static void
 queryPlugin(void)
 {
-  static GParamDef load_args[] =
+  static GimpParamDef load_args[] =
   {
     {PARAM_INT32, "run_mode", "Interactive, non-interactive"},
     {PARAM_STRING, "filename", "The name of the file to load"},
@@ -66,13 +71,13 @@ queryPlugin(void)
     {PARAM_INT32, "set_backgnd", "Set bgcolor to transparentColor after loading"},
     {PARAM_INT32, "gen_hampal", "Generate palette when loading HAM pictures"}
   };
-  static GParamDef load_return_vals[] =
+  static GimpParamDef load_return_vals[] =
   {
     {PARAM_IMAGE, "image", "Output image"}
   };
   static int nload_args = sizeof(load_args) / sizeof(*load_args);
   static int nload_return_vals = sizeof(load_return_vals) / sizeof(*load_return_vals);
-  static GParamDef save_args[] =
+  static GimpParamDef save_args[] =
   {
     {PARAM_INT32, "run_mode", "Interactive, non-interactive"},
     {PARAM_IMAGE, "image", "Input image"},
@@ -89,10 +94,10 @@ queryPlugin(void)
   gimp_install_procedure((char *) loadFuncID,
                          "Loads IFF-ILBM (InterLeaved BitMap) files",
                          "Currently loading of masks is disabled",
-                         "Johnny Teveﬂen <j.tevessen@line.org>",
-                         "Johnny Teveﬂen <j.tevessen@line.org>",
+                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
+                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
                          PLUG_IN_VERSION,
-                         "<Load>/ILBM",
+                         "<Load>/IFF",
                          NULL,
                          PROC_PLUG_IN,
                          nload_args, nload_return_vals,
@@ -101,21 +106,21 @@ queryPlugin(void)
   gimp_install_procedure((char *) saveFuncID,
                          "Saves IFF-ILBM (InterLeaved BitMap) files",
                          "alpha-alpha",
-                         "Johnny Teveﬂen <j.tevessen@line.org>",
-                         "Johnny Teveﬂen <j.tevessen@line.org>",
+                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
+                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
                          PLUG_IN_VERSION,
-                         "<Save>/ILBM",
+                         "<Save>/IFF",
   /* "RGB*,GRAY*,INDEXED" *//* INDEXED* ? */
                          "RGB*,GRAY*,INDEXED*",
                          PROC_PLUG_IN,
                          nsave_args, 0,
                          save_args, NULL
     );
-  /*gimp_register_load_handler ("file_ilbm_load", "iff", "<Load>/ILBM"); */
+  /*gimp_register_load_handler ("file_ilbm_load", "iff", "<Load>/IFF"); */
   /* Drop <xxx>/ILBM ? */
-  gimp_register_magic_load_handler((char *) loadFuncID, (char *) nameExtensions, "" /*"<Load>/ILBM" */ ,
+  gimp_register_magic_load_handler((char *) loadFuncID, (char *) nameExtensions, "" /*"<Load>/IFF" */ ,
                                    "0,string,FORM");
-  gimp_register_save_handler((char *) saveFuncID, (char *) nameExtensions, "" /*"<Save>/ILBM" */ );
+  gimp_register_save_handler((char *) saveFuncID, (char *) nameExtensions, "" /*"<Save>/IFF" */ );
 }
 
 /**** runPlugin() ****/

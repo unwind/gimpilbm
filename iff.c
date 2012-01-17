@@ -135,7 +135,7 @@ iffReadHeader(FILE * fil, IffChunkHeader * chd)
           if (!success) {
             afterChunk = 0;	/* To be sure */
           } else {
-            afterChunk += chd->len;	/* FIXME */
+            afterChunk += ((chd->len+1)&~1UL);	/* FIXME */
           }
         }
       }

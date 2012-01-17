@@ -8,13 +8,13 @@
 #include "iff.h"
 
 #ifndef VERSION
-#define VERSION "0.8.8"
+#  define VERSION "0.9.2"
 #endif
 
-#define PLUG_IN_VERSION VERSION" - 1998-10-09"
+#define PLUG_IN_VERSION VERSION" - 2001-08-09"
 
 #ifndef DEBUGLEVEL
-#define DEBUGLEVEL	2
+#  define DEBUGLEVEL	2
 #endif
 
 #define VERBOSE		(DEBUGLEVEL > 0)
@@ -28,6 +28,7 @@
 #define ID__C__	MAKE_ID('(','C',')',' ')
 #define ID_ACBM	MAKE_ID('A','C','B','M')
 #define ID_ANNO	MAKE_ID('A','N','N','O')
+#define ID_AUTH	MAKE_ID('A','U','T','H')
 #define ID_BMHD	MAKE_ID('B','M','H','D')
 #define ID_BODY	MAKE_ID('B','O','D','Y')
 #define ID_CAMG	MAKE_ID('C','A','M','G')
@@ -36,13 +37,17 @@
 #define ID_DEST	MAKE_ID('D','E','S','T')
 #define ID_DPI_	MAKE_ID('D','P','I',' ')
 #define ID_DPPS	MAKE_ID('D','P','P','S')
+#define ID_FVER	MAKE_ID('F','V','E','R')
 #define ID_GRAB	MAKE_ID('G','R','A','B')
 #define ID_IMRT	MAKE_ID('I','M','R','T')
 #define ID_NAME	MAKE_ID('N','A','M','E')
 #define ID_SPRT	MAKE_ID('S','P','R','T')
+#define ID_copy	MAKE_ID('c','o','p','y')
 
 #define ham4bitToGray8(val4) ((((val4) << 4) * (gint16) 17) / 16)
 #define hamXbitToGray8(x,valx) (((((guint32)(valx)) << (8-(x))) * (gint16) ((1<<(x))+1)) / (1<<(x)))
+
+#define gray8ToHam4(g8) ((((guint16)(g8))*15)/255)
 
 /**** Types ****/
 

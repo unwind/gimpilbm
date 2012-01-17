@@ -3,6 +3,9 @@
 
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
+#ifndef OLDGIMP
+#include <libgimp/gimpui.h>
+#endif
 
 static void
 saveCloseCallback(GtkWidget * widget,
@@ -81,18 +84,36 @@ saveDialog(void)
   GtkWidget *but_save;
   GtkWidget *but_cancel;
 
+  /* Necessary? */
   argv[0] = g_strdup(saveFuncID);
   argv[1] = NULL;
   gtk_init(&argc, &argv);
 
   /* Let's face it */
 
+#ifdef OLDGIMP
   dlg = gtk_dialog_new();
   gtk_window_set_title(GTK_WINDOW(dlg), "Save as IFF");
   gtk_window_position(GTK_WINDOW(dlg), GTK_WIN_POS_MOUSE);
   gtk_signal_connect(GTK_OBJECT(dlg), "destroy",
                      GTK_SIGNAL_FUNC(saveCloseCallback),
                      NULL);
+#else
+  dlg = gimp_dialog_new ("Save as IFF", "iff",
+                         gimp_standard_help_func, "filters/iff.html",
+                         GTK_WIN_POS_MOUSE,
+                         FALSE, TRUE, FALSE,
+                         /* #1 */
+                         "OK", saveOkCallback,
+                         NULL, NULL, NULL, TRUE, FALSE,
+                         /* #2 */
+                         "Cancel", gtk_widget_destroy,
+                         NULL, 1, NULL, FALSE, TRUE,	/* 1 == slot_object? */
+                         /* #0 */
+                         NULL);
+
+  gtk_signal_connect (GTK_OBJECT(dlg), "destroy", GTK_SIGNAL_FUNC(gtk_main_quit), NULL);
+#endif
 
 /**** "dialogue" part ****/
 
@@ -143,6 +164,16 @@ saveDialog(void)
   gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.save_ham);
   gtk_widget_show(toggle);
 
+  /**** Save chunky ****/
+
+  toggle = gtk_check_button_new_with_label("Save chunky (RGB8)");
+  gtk_table_attach(GTK_TABLE(table), toggle, 0, 2, 4, 5, GTK_FILL, 0, 0, 0);
+  gtk_signal_connect(GTK_OBJECT(toggle), "toggled",
+                     (GtkSignalFunc)saveToggleUpdate,
+                     &ilbmvals.save_chunky);
+  gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.save_chunky);
+  gtk_widget_show(toggle);
+
 
   /****  ****/
 #if 0
@@ -151,6 +182,7 @@ saveDialog(void)
                      vbx_compr, TRUE, TRUE, 0);
 #endif
 
+#ifdef OLDGIMP
 /**** "action" part ****/
 
   /**** "Save" ****/
@@ -175,6 +207,7 @@ saveDialog(void)
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->action_area),
                      but_cancel, TRUE, TRUE, 0);
   gtk_widget_show(but_cancel);
+#endif
 
   gtk_widget_show(frame);
   gtk_widget_show(table);

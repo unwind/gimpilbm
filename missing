@@ -1,6 +1,6 @@
 #! /bin/sh
 # Common stub for a few missing GNU programs while installing.
-# Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+# Copyright (C) 1996, 1997, 2001 Free Software Foundation, Inc.
 # Franc,ois Pinard <pinard@iro.umontreal.ca>, 1996.
 
 # This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,14 @@
 if test $# -eq 0; then
   echo 1>&2 "Try \`$0 --help' for more information"
   exit 1
+fi
+
+# In the cases where this matters, `missing' is being run in the
+# srcdir already.
+if test -f configure.in; then
+  configure_ac=configure.ac
+else
+  configure_ac=configure.in
 fi
 
 case "$1" in
@@ -61,7 +69,7 @@ Supported PROGRAM values:
   aclocal)
     echo 1>&2 "\
 WARNING: \`$1' is missing on your system.  You should only need it if
-         you modified \`acinclude.m4' or \`configure.in'.  You might want
+         you modified \`acinclude.m4' or \`$configure_ac'.  You might want
          to install the \`Automake' and \`Perl' packages.  Grab them from
          any GNU archive site."
     touch aclocal.m4
@@ -70,7 +78,7 @@ WARNING: \`$1' is missing on your system.  You should only need it if
   autoconf)
     echo 1>&2 "\
 WARNING: \`$1' is missing on your system.  You should only need it if
-         you modified \`configure.in'.  You might want to install the
+         you modified \`$configure_ac'.  You might want to install the
          \`Autoconf' and \`GNU m4' packages.  Grab them from any GNU
          archive site."
     touch configure
@@ -79,29 +87,31 @@ WARNING: \`$1' is missing on your system.  You should only need it if
   autoheader)
     echo 1>&2 "\
 WARNING: \`$1' is missing on your system.  You should only need it if
-         you modified \`acconfig.h' or \`configure.in'.  You might want
+         you modified \`acconfig.h' or \`$configure_ac'.  You might want
          to install the \`Autoconf' and \`GNU m4' packages.  Grab them
          from any GNU archive site."
-    files=`sed -n 's/^[ ]*A[CM]_CONFIG_HEADER([^):]*:\([^)]*\)).*/\1/p' configure.in`
-    if test -z "$files"; then
-      files=`sed -n 's/^[ ]*A[CM]_CONFIG_HEADER(\([^):]*\)).*/\1/p' configure.in`
-      test -z "$files" || files="$files.in"
-    else
-      files=`echo "$files" | sed -e 's/:/ /g'`
-    fi
-    test -z "$files" && files="config.h.in"
-    touch $files
+    files=`sed -n 's/^[ ]*A[CM]_CONFIG_HEADER(\([^)]*\)).*/\1/p' $configure_ac`
+    test -z "$files" && files="config.h"
+    touch_files=
+    for f in $files; do
+      case "$f" in
+      *:*) touch_files="$touch_files "`echo "$f" |
+				       sed -e 's/^[^:]*://' -e 's/:.*//'`;;
+      *) touch_files="$touch_files $f.in";;
+      esac
+    done
+    touch $touch_files
     ;;
 
   automake)
     echo 1>&2 "\
 WARNING: \`$1' is missing on your system.  You should only need it if
-         you modified \`Makefile.am', \`acinclude.m4' or \`configure.in'.
+         you modified \`Makefile.am', \`acinclude.m4' or \`$configure_ac'.
          You might want to install the \`Automake' and \`Perl' packages.
          Grab them from any GNU archive site."
-    find . -type f -name Makefile.am -print \
-      | sed 's/^\(.*\).am$/touch \1.in/' \
-      | sh
+    find . -type f -name Makefile.am -print |
+	   sed 's/\.am$/.in/' |
+	   while read f; do touch "$f"; done
     ;;
 
   bison|yacc)

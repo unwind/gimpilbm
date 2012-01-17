@@ -7,12 +7,19 @@ typedef struct {
   gdouble threshold;
   gint32 compress;
   gint32 save_ham;
+  gint32 save_chunky;
   gint32 set_backgnd;
 } ILBMSaveVals;
 
 typedef struct {
   gint run;
 } ILBMSaveInterface;
+
+#ifdef OLDGIMP
+  typedef struct GPlugInInfo PluginStructType;
+#else
+  typedef struct _GimpPlugInInfo PluginStructType;
+#endif
 
 extern ILBMSaveVals ilbmvals;
 extern ILBMSaveInterface ilbmint;

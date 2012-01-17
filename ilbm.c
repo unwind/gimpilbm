@@ -7,12 +7,16 @@
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 
+#include "oldgimp.h"
 #include "plugin.h"
 #include "gui.h"
 #include "iff.h"
 #include "byterun1.h"
 #include "hamehb.h"
+#include "grayscale.h"
 #include "ilbm.h"
+
+#define DATEPRE2K	"01.01.2002"
 
 /**** BMHD BitMap HeaDer ****/
 
@@ -153,96 +157,64 @@ dumpSPRT(ILBMsprt * sprt)
   printf("Sprite Precedence: %hu\n", sprt->preced);
 }
 
-/**** Grayscale ****/
-
-static void
-transGray(grayval * dest, gint width, const palidx * transGrayTab)
-{
-  g_assert(dest != NULL);
-  g_assert(transGrayTab != NULL);
-  while (width--) {
-    *dest = transGrayTab[*dest];
-    ++dest;
-  }
-}
-
-static guint8 *
-allocGrayscale(void)
-{
-  guint8 *gbuf = g_new(guint8, maxGrayshades * byteppRGB);
-  if (!gbuf) {
-    fputs("Out of memory.\n", stderr);
-  } else {
-    guint8 *gp;
-    gint i;
-    if (VERBOSE)
-      fputs("Composing grayscale colormap...\n", stdout);
-    for (gp = gbuf, i = 0; i < maxGrayshades; ++i) {
-      *gp++ = i;
-      *gp++ = i;
-      *gp++ = i;
-    }
-  }
-  return (gbuf);
-}
-
-/*  Returns TRUE if the given colormap consists of only
- *  gray entries
- */
+/**** RGBN8 ****/
 
 static gboolean
-isGrayscale(const guint8 * cmap, gint ncols)
+packRGBN8(FILE * fil, const grayval * rgbbuf, gint32 pixelNeeded,
+          IffID ftype, gboolean alpha)
 {
-  g_assert(cmap != NULL);
-  g_assert(ncols >= 0);
-  while (ncols--) {
-    if (!((*cmap == cmap[1]) && (cmap[1] == cmap[2])))
-      return (FALSE);
-    cmap += byteppRGB;
-  }
-  return (TRUE);
-}
-
-/* Allocates a 256 byte array of the values 0..255 */
-
-static guint8 *
-allocGrayKeep(void)
-{
-  guint8 *gt = g_new(guint8, maxGrayshades);
-  if (!gt) {
-    fputs("Out of memory.\n", stderr);
-  } else {
-    gint i;
-    for (i = maxGrayshades - 1; i >= 0; --i)
-      gt[i] = i;
-  }
-  return (gt);
-}
-
-/*  Returns a ncols wide array
- *  "cmap" has to be grayscale
- */
-
-static guint8 *
-allocGrayTrans(const guint8 * cmap, gint ncols)
-{
-  guint8 *gt = g_new(guint8, maxGrayshades);
-  g_assert(cmap != NULL);
-  g_assert(ncols >= 0);
-  if (!gt) {
-    fputs("Out of memory.\n", stderr);
-  } else {
-    gint idx = 0;
-    while (ncols--) {
-      gt[idx] = *cmap;
-      ++idx;
-      cmap += byteppRGB;
+  gboolean success = 1;
+  guint32 actclong = 0;
+  guint16 repeat = 0;
+  gboolean isfirst = 1;
+  g_assert ((ftype == ID_RGB8) || (ftype == ID_RGBN));
+  if (!pixelNeeded) return (1);
+  alpha = alpha != 0;
+  while (pixelNeeded > 0) {
+    guint32 clong;
+    if (ftype == ID_RGB8) {
+      clong = (((guint32)*rgbbuf)<<24)
+            | (((guint32)rgbbuf[1])<<16)
+            | (((guint32)rgbbuf[2])<<8)
+            | (((guint32)alpha)<<7);
+    } else {
+      clong = (((guint16)gray8ToHam4(*rgbbuf))<<12)
+            | (((guint16)gray8ToHam4(rgbbuf[1]))<<8)
+            | (((guint16)gray8ToHam4(rgbbuf[2]))<<4)
+            | (((guint16)alpha)<<3);
     }
+    if (isfirst) {
+      actclong = clong;
+      isfirst = 0;
+    }
+    if ((clong != actclong)
+        || (repeat == ((ftype == ID_RGB8)?127:7))
+    ) {
+      actclong |= repeat;
+      if (ftype == ID_RGB8)
+        success = writeUlong(fil, actclong);
+      else
+        success = writeUword(fil, actclong);
+      if (!success)
+        break;
+      actclong = clong;
+      isfirst = 0;	/* FIXME: optimize */
+      repeat = 1;
+    } else {
+      ++repeat;		/* FIXME: check for max. */
+    }
+    rgbbuf += byteppRGB + (alpha != 0);
+    --pixelNeeded;
   }
-  return (gt);
+  if (repeat) {
+    actclong |= repeat;
+    if (ftype == ID_RGB8)
+      success = writeUlong(fil, actclong);
+    else
+      success = writeUword(fil, actclong);
+  }
+  return (success);
 }
-
-/**** RGBN8 ****/
 
 static gboolean
 unpackRGBN8(FILE * fil, grayval * rgbbuf, gint32 pixelNeeded,
@@ -503,12 +475,12 @@ parseLines(FILE * fil, guint8 * dst,
   /* FIXME: check both */
   if ((ID_RGB8 == ftype) || (ID_RGBN == ftype)) {
     gboolean success = unpackRGBN8(fil, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);
+    /* above expression unused ATM */
     dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
     /* This way alpha doesn't work with RGB8 */
   } else if (!cmap) {
     /* RGB(A) */
-    if (VERBOSE)
-      fputs("Creating RGB(A)\n", stdout);
+    /* if (VERBOSE) fputs("Creating RGB(A)\n", stdout);*/
     while (hereheight--) {
       gint rgb;
       for (rgb = 0; rgb < byteppRGB; ++rgb) {
@@ -546,40 +518,40 @@ parseLines(FILE * fil, guint8 * dst,
     /* indexed */
     while (hereheight--) {
       gint bitnr;
-if(ID_PBM_==ftype) {
-/* Chunky */
-/* We always read 1 byte per pixel, so "width" bytes. */
-readPlaneRow(fil,destline,width,bmhd->compression);
-/* Are there IPBMs with maybe another byte pp for alpha? */
-} else {
-      (void) memset(destline, 0, width);
-      /* todo: should really unpack line-by-line, not plane-by-plane. */
+      if (ID_PBM_ == ftype) {
+        /* Chunky */
+        /* We always read 1 byte per pixel, so "width" bytes. */
+        readPlaneRow(fil,destline,width,bmhd->compression);
+        /* Are there IPBMs with maybe another byte pp for alpha? */
+      } else {
+        (void) memset(destline, 0, width);
+        /* todo: should really unpack line-by-line, not plane-by-plane. */
 #if 1
-      for (bitnr = 0; bitnr < dest->depth; ++bitnr) {
-        if (dest->planePick & (1 << bitnr)) {
-          /* "put the next source bitplane into this bitplane" */
-          readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
-          unpackBits(bitlinebuf, destline, bitnr, width);  /* +7/8? */
-        } else {
-          /* "put the corresponding bit from planeOnOff into this bitplane" */
-          /* We ignore dest->planeMask since this is no transparency issue */
-          if (dest->planeOnOff & (1 << bitnr)) {
-            setBits (destline, bitnr, width);
+        for (bitnr = 0; bitnr < dest->depth; ++bitnr) {
+          if (dest->planePick & (1 << bitnr)) {
+            /* "put the next source bitplane into this bitplane" */
+            readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+            unpackBits(bitlinebuf, destline, bitnr, width);  /* +7/8? */
           } else {
-            clrBits (destline, bitnr, width);
+            /* "put the corresponding bit from planeOnOff into this bitplane" */
+            /* We ignore dest->planeMask since this is no transparency issue */
+            if (dest->planeOnOff & (1 << bitnr)) {
+              setBits (destline, bitnr, width);
+            } else {
+              clrBits (destline, bitnr, width);
+            }
           }
         }
-      }
 #else
-      {
-        char blbuf[BYTEPL(width) * bmhd->nPlanes];
-        readPlaneRow(fil, blbuf, BYTEPL(width) * bmhd->nPlanes, bmhd->compression);
-        for (bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr) {
-          unpackBits(blbuf + (bitnr * BYTEPL(width)), destline, bitnr, width);
+        {
+          char blbuf[BYTEPL(width) * bmhd->nPlanes];
+          readPlaneRow(fil, blbuf, BYTEPL(width) * bmhd->nPlanes, bmhd->compression);
+          for (bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr) {
+            unpackBits(blbuf + (bitnr * BYTEPL(width)), destline, bitnr, width);
+          }
         }
-      }
 #endif
-}
+      }
       if (grayTrans)
         transGray(destline, width, grayTrans);
 
@@ -619,8 +591,10 @@ readPlaneRow(fil,destline,width,bmhd->compression);
         }
         dst += width;
       }
-      /* Check indices for range */
-      checkIdxRanges (dst, width, ncols);
+      if (!transGray) {
+        /* Check indices for range */
+        checkIdxRanges (dst, width, ncols);
+      }
       dst += width;
     }
   } else {
@@ -672,6 +646,8 @@ readPlaneRow(fil,destline,width,bmhd->compression);
 static void
 setCmap(gint32 imageID, const guint8 * cmap, gint ncols)
 {
+  g_assert (NULL != cmap);
+  g_assert (0 != ncols);
   if (VERBOSE)
     printf("Setting cmap (%d colors)...\n", ncols);
   gimp_image_set_cmap(imageID, (guchar *) cmap, ncols);
@@ -679,19 +655,185 @@ setCmap(gint32 imageID, const guint8 * cmap, gint ncols)
 
 
 /**** Loading ****/
+/*                loadBODY (fil, &bmhd, &camg, cmap, grayTrans);*/
 
-#if 0
+static gboolean
+loadBODY(gboolean succ, FILE * fil, IffID ftype, const char* filename, const ILBMbmhd* bmhd, ILBMcamg* camg, ILBMdest* dest,
+         gboolean hasDest, grayval** cmap, gint ncols, const grayval* grayTrans, gint32* imageID)
+{
+          GimpDrawable *drawable;
+                  guint tileHeight;  /* guint is the return value */
+                  guint8 *buf;
+                  gboolean exportRGB, isGray = 0;
+                  gint32 layerID = -1;
+                  GimpPixelRgn pixelRegion;
+
+                  if (hasDest) {
+                    /* mmh, should we take mask in account here? */
+                    /* now we assume a mask just to be the "highest" bit */
+                    if (bmhd->nPlanes > dest->depth) {
+                      g_warning ("More planes in file than allowed by DEST.");
+                    }
+                    if (numBitsSet (dest->planePick) != bmhd->nPlanes) {
+                      g_warning ("Number of planes doesn\'t match bits set in planePick.");
+                    }
+                  } else {
+                    dest->depth = bmhd->nPlanes;
+                    dest->planePick = dest->planeMask = (1L << bmhd->nPlanes) - 1;
+                    /* hasDest = TRUE; */
+                  }
+                  /* "Any higher order bits should be ignored" */
+                  dest->planePick &= 0xFF;
+                  dest->planeOnOff &= 0xFF;
+                  dest->planeMask &= 0xFF;
+
+                  /*  Some old (pre-AGA) programs saved HAM6 pictures
+                   *  without setting the right (or any) CAMG flags.
+                   *  Let's guess then.
+                   */
+                  if (!(camg->viewModes & ham) && (6 == bmhd->nPlanes)
+                      && (16 == ncols)) {
+                    if (VERBOSE)
+                      printf("Guessing HAM6.\n");
+                    camg->viewModes |= ham;
+                  }
+                  if (*cmap &&
+                      ((bitppRGB == bmhd->nPlanes) ||
+                       (ID_RGBN == ftype) ||
+                       (ID_RGB8 == ftype))) {
+                    /* Well, I've already seen an 24bit image
+                     * with a 32color CMAP. :-/ Ignore it. */
+                    g_free (*cmap);
+                    *cmap = NULL;
+                  }
+                  if (!*cmap && (bitppGray == bmhd->nPlanes)) {
+                    /* Well, seems to be a grayscale. */
+                    *cmap = allocGrayscale();
+                    ncols = maxGrayshades;
+                    isGray = 1;
+                    grayTrans = allocGrayKeep();  /* 1:1 */
+                  } else if (*cmap && !(camg->viewModes & ham)) {
+                    isGray = isGrayscale(*cmap, ncols);
+                    if (isGray) {
+                      if (ncols > 4) {
+                        if (VERBOSE)
+                          printf("Promoting to grayscale.\n");
+                        grayTrans = allocGrayTrans(*cmap, ncols);
+                      } else {
+                        if (VERBOSE)
+                          printf("Is gray, but with this few colors Grayscale makes no sense.\n");
+                        isGray = 0;
+                      }
+                    }
+                  }
+                  if (VERBOSE)
+                    printf("isGray:%d\n", (int) isGray);
+
+                  /* if (DEBUG && grayTrans) dumpGrayTrans (grayTrans); */
+
+                  exportRGB = !*cmap || (camg->viewModes & ham);
+                  if (!exportRGB && !*cmap) {
+                    fprintf(stderr, "Colormap (CMAP) missing!\n");
+                  }
+
+                  if (camg->viewModes & extraHalfbrite) {
+                    *cmap = reallocEhbCmap (*cmap, &ncols);
+                  }
+
+                  /* !! Caution (FIXME): Every msk.. needs alpha, but we don't
+                     support everyone yet !! */
+                  *imageID = gimp_image_new(bmhd->w, bmhd->h,
+                             (exportRGB ? GIMP_RGB : (isGray ? GIMP_GRAY : GIMP_INDEXED)));
+                  gimp_image_set_filename(*imageID, (char *) filename);
+
+                  if (!exportRGB && *cmap && !isGray) {
+                    setCmap(*imageID, *cmap, ncols);
+                  }
+
+
+                  {
+                    gboolean needsAlpha = (bmhd->masking != mskNone) ||
+                    ((ID_RGBN == ftype) && (bmhd->nPlanes == 13)) ||
+                    ((ID_RGB8 == ftype) && (bmhd->nPlanes == 25));
+                    if (VERBOSE)
+                      printf("exportRGB:%d needsAlpha:%d\n",
+                             (int) exportRGB, (int) needsAlpha);
+                    layerID = gimp_layer_new(*imageID, "Background",
+                                             bmhd->w, bmhd->h,
+                                             needsAlpha ?
+                                             (exportRGB ? GIMP_RGBA_IMAGE : (isGray ? GIMP_GRAYA_IMAGE : GIMP_INDEXEDA_IMAGE))
+                                             : (exportRGB ? GIMP_RGB_IMAGE : (isGray ? GIMP_GRAY_IMAGE : GIMP_INDEXED_IMAGE)),
+                                             100, GIMP_NORMAL_MODE);
+                    gimp_image_add_layer(*imageID, layerID, 0);
+                    drawable = gimp_drawable_get(layerID);
+                    gimp_pixel_rgn_init(&pixelRegion, drawable, 0, 0,
+                                        drawable->width, drawable->height,
+                                        TRUE, FALSE);
+                    tileHeight = gimp_tile_height();
+                    if (VERBOSE)
+                      printf("Gimp tileHeight: %d\n", tileHeight);
+                    buf = g_new(guint8, tileHeight * bmhd->w
+                                * ((exportRGB ? byteppRGB : byteppGray)
+                                   + (needsAlpha ? 1 : 0)));
+                  }
+                  if (!buf) {
+                    fputs ("Buffer allocation\n", stderr);
+                    succ = FALSE;
+                  } else {
+                    guint actTop;
+                    gint scanlines;
+                    for (actTop = 0; actTop < (guint) bmhd->h; actTop += tileHeight) {
+                      scanlines = MIN(tileHeight, bmhd->h - actTop);
+                      if (VERBOSE)
+                        printf("Processing lines%5d upto%5d (%2d)...\n",
+                               actTop, actTop + scanlines - 1, scanlines);
+                      parseLines(fil, buf, bmhd->w, scanlines,
+                             bmhd, dest, *cmap, ncols, camg->viewModes, grayTrans, ftype);
+                      gimp_progress_update((double) actTop / (double) bmhd->h);
+                      gimp_pixel_rgn_set_rect(&pixelRegion, buf,
+                                              0, actTop,
+                                              drawable->width, scanlines);
+                    }
+                    gimp_progress_update(1.0);
+                    g_free(buf);
+                  }
+                  gimp_drawable_flush(drawable);  /* unneccessary? */
+                  gimp_drawable_detach(drawable);
+  return (succ);
+}
+
+#include <sys/times.h>
+static struct tms tms;
+
 void
-  loadBody();
-#endif
+timerStart (void) {
+  fputs ("Starting timer.\n", stderr);
+  (void) times (&tms);
+}
+
+void
+timerStop (void) {
+  struct tms tms2;
+  (void) times (&tms2);
+  fputs ("Timer stopped.\n", stderr);
+  fprintf (stderr,
+           "User   : %12ld %12ld\n"
+           "System : %12ld %12ld\n",
+           tms2.tms_utime - tms.tms_utime,
+           tms2.tms_cutime - tms.tms_cutime,
+           tms2.tms_stime - tms.tms_stime,
+           tms2.tms_cstime - tms.tms_cstime);
+}
 
 gint32
 loadImage(const char *filename)
 {
   gint32 imageID = -1;
   gboolean succ = TRUE;
-  char *name = g_new(char, strlen(filename) + 10);
+  char *name;
 
+  if (1 || VERBOSE) timerStart();
+  name = g_new(char, strlen(filename) + 10);
   if (!name) {
     fputs("Out of memory.\n", stderr);
     return (imageID);
@@ -716,12 +858,23 @@ loadImage(const char *filename)
         IffID ftype = 0;
         succ = succ && readUlong(fil, &hdrid);
         switch (hdrid) {
-          case ID_ILBM:
-          case ID_PBM_:
-          case ID_RGBN:
-          case ID_RGB8:
+          case ID_ILBM:		/* native			*/
+          case ID_PBM_:		/* DPaintIIe (PC)		*/
+          case ID_RGB8:		/* TurboSilver (Impulse)	*/
+          case ID_RGBN:		/* TurboSilver (Impulse)	*/
             ftype = hdrid;
             break;
+          /* Further possible types:
+             IFF-ACBM,		Amiga Continuous BitMap
+             IFF-YUVN,		VLab (Macrosystems)
+             IFF-DEEP,		XiPaint/TVPaint
+             IFF-FAXX,
+             IFF-RGFX,		Retargetable Graphics
+             IFF-SHAM/DHAM/DHIRES,	IFF FORMS
+             IFF-DCOL,		Direct color
+             IFF-PCHG,		Palette changes
+             SVG		SuperView Graphics
+          */
           default:
             ftype = (IffID) 0;
             break;
@@ -730,10 +883,6 @@ loadImage(const char *filename)
           fprintf(stderr, "No ILBM/RGBN/RGB8 header found.\n");
         } else {
           gint32 hunksize;
-          gint32 width = 0, height = 0;
-          gint32 layerID = -1;
-          GDrawable *drawable;
-          GPixelRgn pixelRegion;
           ILBMbmhd bmhd;
           guint8 *cmap = 0;
           guint8 *grayTrans = 0;
@@ -745,10 +894,13 @@ loadImage(const char *filename)
           gboolean running = 1;
           IffChunkHeader chead;
 
-          bmhd.nPlanes = 0;     /* == not yet used */
+          bmhd.w	= 0;
+          bmhd.h	= 0;
+          bmhd.nPlanes	= 0;     /* == not yet used */
 
           while (running && (iffReadHeader(fil, &chead))) {
-            hunksize = ((chead.len + 1) / 2) * 2;
+            /*hunksize = ((chead.len + 1) / 2) * 2;*/
+            hunksize = (chead.len + 1) & ~1UL;
             if (VERBOSE)
               iffDumpHeader(&chead);
             switch (chead.id) {
@@ -756,8 +908,6 @@ loadImage(const char *filename)
                 succ = succ && iffReadDataAuto(fil, bmhd);
                 if (succ) {
                   valBMHD(&bmhd);
-                  width = bmhd.w;
-                  height = bmhd.h;
                   if (VERBOSE)
                     dumpBMHD(&bmhd);
                 }
@@ -805,6 +955,9 @@ loadImage(const char *filename)
               case ID_CHRS:
               case ID_NAME:
               case ID_TEXT:
+              case ID_copy:
+              case ID_AUTH:
+              case ID_FVER:
                 {
                   guint8 *cont = g_new(guint8, chead.len + 1 + 1);
                   /* FIXME: check */
@@ -825,134 +978,12 @@ loadImage(const char *filename)
                   running = FALSE;
                   break;
                 }
-                {
-                  guint tileHeight;  /* guint is the return value */
-                  guint8 *buf;
-                  gboolean exportRGB, isGray = 0;
-                  if (hasDest) {
-                    /* mmh, should we take mask in account here? */
-                    /* now we assume a mask just to be the "highest" bit */
-                    if (bmhd.nPlanes > dest.depth) {
-                      g_warning ("More planes in file than allowed by DEST.");
-                    }
-                    if (numBitsSet (dest.planePick) != bmhd.nPlanes) {
-                      g_warning ("Number of planes doesn\'t match bits set in planePick.");
-                    }
-                  } else {
-                    dest.depth = bmhd.nPlanes;
-                    dest.planePick = dest.planeMask = (1L << bmhd.nPlanes) - 1;
-                    /* hasDest = TRUE; */
-                  }
-                  /* "Any higher order bits should be ignored" */
-                  dest.planePick &= 0xFF;
-                  dest.planeOnOff &= 0xFF;
-                  dest.planeMask &= 0xFF;
-
-                  /*  Some old (pre-AGA) programs saved HAM6 pictures
-                   *  without setting the right (or any) CAMG flags.
-                   *  Let's guess then.
-                   */
-                  if (!(camg.viewModes & ham) && (6 == bmhd.nPlanes)
-                      && (16 == ncols)) {
-                    if (VERBOSE)
-                      printf("Guessing HAM6.\n");
-                    camg.viewModes |= ham;
-                  }
-                  if (cmap &&
-                      ((bitppRGB == bmhd.nPlanes) ||
-                       (ID_RGBN == ftype) ||
-                       (ID_RGB8 == ftype))) {
-                    /* Well, I've already seen an 24bit image
-                     * with a 32color CMAP. :-/ Ignore it. */
-                    g_free (cmap);
-                    cmap = NULL;
-                  }
-                  if (!cmap && (bitppGray == bmhd.nPlanes)) {
-                    /* Well, seems to be a grayscale. */
-                    cmap = allocGrayscale();
-                    ncols = maxGrayshades;
-                    isGray = 1;
-                    grayTrans = allocGrayKeep();  /* 1:1 */
-                  } else if (cmap && !(camg.viewModes & ham)) {
-                    isGray = isGrayscale(cmap, ncols);
-                    if (isGray) {
-                      if (VERBOSE)
-                        printf("Promoting to grayscale.\n");
-                      grayTrans = allocGrayTrans(cmap, ncols);
-                    }
-                  }
-                  if (VERBOSE)
-                    printf("isGray:%d\n", (int) isGray);
-
-                  exportRGB = !cmap || (camg.viewModes & ham);
-                  if (!exportRGB && !cmap)
-                    fprintf(stderr, "Colormap (CMAP) missing!\n");
-
-                  if (camg.viewModes & extraHalfbrite) {
-                    cmap = reallocEhbCmap (cmap, &ncols);
-                  }
-
-                  /* !! Caution: Every msk.. needs alpha, but we don't
-                     support everyone yet !! */
-                  imageID = gimp_image_new(width, height,
-                             (exportRGB ? RGB : (isGray ? GRAY : INDEXED)));
-                  gimp_image_set_filename(imageID, (char *) filename);
-
-                  if (!exportRGB && cmap && !isGray)
-                    setCmap(imageID, cmap, ncols);
-
-                  {
-                    gboolean needsAlpha = (bmhd.masking != mskNone) ||
-                    ((ID_RGBN == ftype) && (bmhd.nPlanes == 13)) ||
-                    ((ID_RGB8 == ftype) && (bmhd.nPlanes == 25));
-                    if (VERBOSE)
-                      printf("exportRGB:%d needsAlpha:%d\n",
-                             (int) exportRGB, (int) needsAlpha);
-                    layerID = gimp_layer_new(imageID, "Background",
-                                             width, height,
-                                             needsAlpha ?
-                                             (exportRGB ? RGBA_IMAGE : (isGray ? GRAYA_IMAGE : INDEXEDA_IMAGE))
-                                             : (exportRGB ? RGB_IMAGE : (isGray ? GRAY_IMAGE : INDEXED_IMAGE)),
-                                             100, NORMAL_MODE);
-                    gimp_image_add_layer(imageID, layerID, 0);
-                    drawable = gimp_drawable_get(layerID);
-                    gimp_pixel_rgn_init(&pixelRegion, drawable, 0, 0,
-                                        drawable->width, drawable->height,
-                                        TRUE, FALSE);
-                    tileHeight = gimp_tile_height();
-                    if (VERBOSE)
-                      printf("Gimp tileHeight: %d\n", tileHeight);
-                    buf = g_new(guint8, tileHeight * width
-                                * ((exportRGB ? byteppRGB : byteppGray)
-                                   + (needsAlpha ? 1 : 0)));
-                  }
-                  if (!buf) {
-                    fputs ("Buffer allocation\n", stderr);
-                    succ = FALSE;
-                  } else {
-                    guint actTop;
-                    gint scanlines;
-                    for (actTop = 0; actTop < (guint) height; actTop += tileHeight) {
-                      scanlines = MIN(tileHeight, height - actTop);
-                      if (VERBOSE)
-                        printf("Processing lines%4d upto%4d (%2d)...\n",
-                               actTop, actTop + scanlines - 1, scanlines);
-                      parseLines(fil, buf, width, scanlines,
-                             &bmhd, &dest, cmap, ncols, camg.viewModes, grayTrans, ftype);
-                      gimp_progress_update((double) actTop / (double) height);
-                      gimp_pixel_rgn_set_rect(&pixelRegion, buf,
-                                              0, actTop,
-                                              drawable->width, scanlines);
-                    }
-                    gimp_progress_update(1.0);
-                    g_free(buf);
-                  }
-                  gimp_drawable_flush(drawable);  /* unneccessary? */
-                  gimp_drawable_detach(drawable);
-                  running = FALSE;  /* Stop parsing IFF */
-                }
+                /* cmap is ptr-ptr */
+                succ = loadBODY (succ, fil, ftype, filename, &bmhd, &camg, &dest, hasDest, &cmap, ncols, grayTrans, &imageID);
+                running = FALSE;  /* Stop parsing IFF */
                 break;
               default:
+                /*if (VERBOSE) printf ("Unknown hunk; skipping %d byte.\n", hunksize);*/
                 (void) fseek(fil, hunksize, SEEK_CUR);
                 break;
             }
@@ -971,6 +1002,7 @@ loadImage(const char *filename)
     }
   }
   g_free(name);
+  if (1 || VERBOSE) timerStop();
   return (imageID);
 }
 
@@ -1076,26 +1108,28 @@ saveImage(const char *filename,
   guint16 alpha = 0;
   guint16 compress = ilbmvals.compress ? cmpByteRun1 : cmpNone;
   guint16 saveham = ilbmvals.save_ham;
+  guint16 chunky = ilbmvals.save_chunky;
   gboolean outGrayscale = FALSE;
   const guint8 *cmap = 0;
   gint ncols;
   gint dtype;
   char *name;
 
+  if (1 || VERBOSE) timerStart();
   dtype = gimp_drawable_type(drawableID);
   switch (dtype) {
-    case GRAYA_IMAGE:
+    case GIMP_GRAYA_IMAGE:
       outGrayscale = TRUE;
-    case RGBA_IMAGE:
+    case GIMP_RGBA_IMAGE:
       alpha = 1;
       break;
-    case GRAY_IMAGE:
+    case GIMP_GRAY_IMAGE:
       outGrayscale = TRUE;
-    case RGB_IMAGE:
+    case GIMP_RGB_IMAGE:
       break;
-    case INDEXEDA_IMAGE:
+    case GIMP_INDEXEDA_IMAGE:
       alpha = 1;
-    case INDEXED_IMAGE:
+    case GIMP_INDEXED_IMAGE:
       cmap = gimp_image_get_cmap(imageID, &ncols);
       break;
     default:
@@ -1113,7 +1147,7 @@ saveImage(const char *filename,
 
   /* save... */
   {
-    GDrawable *drawable = gimp_drawable_get(drawableID);
+    GimpDrawable *drawable = gimp_drawable_get(drawableID);
     gint width = drawable->width, height = drawable->height;
     FILE *fil;
     gint bytepp = drawable->bpp;  /* includes alpha? */
@@ -1141,7 +1175,7 @@ saveImage(const char *filename,
     }
 
     if (saveham) {
-      if ((dtype == RGB_IMAGE) || (dtype == RGBA_IMAGE)) {  /* Doesn't have to be that rigid */
+      if ((dtype == GIMP_RGB_IMAGE) || (dtype == GIMP_RGBA_IMAGE)) {  /* Doesn't have to be that rigid */
         outHAM = 6;
       }
     }
@@ -1169,11 +1203,12 @@ saveImage(const char *filename,
 
       iffInitHeader(&fhead, ID_FORM, ntohl(0x0BADC0DE));
       succ = succ && iffWriteHeader(fil, &fhead);
-      succ = succ && writeUlong(fil, ID_ILBM);
+      succ = succ && writeUlong(fil, chunky ? ID_RGBN : ID_ILBM); /* always chunky? */
       totsize += 4;
 
 /**** ANNO ****/
-#define PLUGID "Written by the Gimp ILBM plugin "VERSION"\0"
+/*#define PLUGID "Written by the Gimp ILBM plugin "VERSION"\0"*/
+#define PLUGID "$VER: Written by the Gimp ILBM plugin "VERSION" ("DATEPRE2K")\0"
 #define PLUGSIZE (sizeof(PLUGID) & ~1)
       iffInitHeader(&chead, ID_ANNO, PLUGSIZE);
       succ = succ && iffWriteHeader(fil, &chead);
@@ -1213,7 +1248,7 @@ saveImage(const char *filename,
         /* Image is indexed; use palette given by the Gimp */
         outCmap = cmap;
         outNcols = ncols;
-      } else if ((dtype == GRAY_IMAGE) || (dtype == GRAYA_IMAGE)) {
+      } else if ((dtype == GIMP_GRAY_IMAGE) || (dtype == GIMP_GRAYA_IMAGE)) {
         /* Gimp gave us a grayscale image, save as indexed */
         outCmap = allocGrayscale();
         outNcols = maxGrayshades;
@@ -1229,12 +1264,12 @@ saveImage(const char *filename,
       /**** CAMG ****/
 
       /* Pictures with 640 pixels width and more are usually HighRes */
-      if (width >= 640) {
-        camg.viewModes |= hiRes;
-      }
       /* Pictures with 400 pixels height and more are usually Interlaced */
-      if (height >= 400) {
-        camg.viewModes |= lace;
+      /* Width:  Change: Say, something >= 400 is most probably.. */
+      /* Height: Change: Say, something >= 330 is most probably.. */
+      /* Chance: Save either HIRES|LACE or 0 because of aspect    */
+      if ((width >= 400) || (height >= 330)) {
+        camg.viewModes |= hiRes | lace;
       }
 
       if (camg.viewModes) {
@@ -1261,7 +1296,7 @@ saveImage(const char *filename,
           printf("Using a buffer of %ld byte.\n", (long) tileHeight * width * bytepp);
         if (buffer) {
           gint actTop;
-          GPixelRgn pixelRegion;
+          GimpPixelRgn pixelRegion;
           guint8 *packedBuf = allocPackedBuf(BYTEPL(width), compress);
           guint8 *plane = g_new(guint8, BYTEPL(width));
           /* FIXME: check */
@@ -1273,13 +1308,22 @@ saveImage(const char *filename,
             gint scanlines;
             scanlines = MIN(tileHeight, height - actTop);
             if (VERBOSE)
-              printf("Processing lines%4d upto%4d (%2d)...\n",
+              printf("Processing lines%5d upto%5d (%2d)...\n",
                      actTop, actTop + scanlines - 1, scanlines);
             gimp_pixel_rgn_get_rect(&pixelRegion, buffer,
                                     0, actTop, width, scanlines);
             data = buffer;
 
-            if (!outCmap) {
+            if (chunky) {	/* RGB8/RGBN; IPBM is only 1 bytepp */
+              while (scanlines--) {
+		/* w*bpp vs. BYTEPL(width) */
+                /*writePlaneRow(fil, data, width * bytepp, compress, packedBuf);*/
+                /* FIXME: check success */
+                (void) packRGBN8(fil, data, width, ID_RGBN, 0 /* alpha */);
+                data += width * bytepp;
+              }
+              /* er.. chunk size counter? */
+            } else if (!outCmap) {
               while (scanlines--) {
                 /* 24bit is saved r0..r7g0..g7b0..b7 */
                 gint rgb;
@@ -1323,7 +1367,7 @@ saveImage(const char *filename,
 
           bodysize = ftell(fil) - bodyLenOff + 4;
           if (VERBOSE)
-            printf("bodysize:%lu\n", (unsigned long) bodysize);
+            printf("bodysize: %lu\n", (unsigned long) bodysize);
 
           if (bodysize & 1) {
             /* Add padding */
@@ -1356,5 +1400,6 @@ saveImage(const char *filename,
     gimp_drawable_detach(drawable);
   }
   g_free(name);
+  if (1 || VERBOSE) timerStop();
   return (rc);
 }

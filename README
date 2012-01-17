@@ -2,8 +2,8 @@
 -DG_DISABLE_ASSERT
 
 /*
- *  This is the IFF-ILBM Gimp plugin by Johnny Teveﬂen,
- *  eMail: <j.tevessen@line.org>
+ *  This is the IFF-ILBM Gimp plugin by Johannes Teveﬂen,
+ *  eMail: <j.tevessen@gmx.net>
  *
  *  Short:
  *    IFF (InterchangeFileFormat) is a universal data
@@ -106,5 +106,4 @@
 
 ciao,
 johnny
-<j.tevessen@line.org>
-
+<j.tevessen@gmx.net>

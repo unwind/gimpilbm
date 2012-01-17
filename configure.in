@@ -1,42 +1,77 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(ilbm.c)
-AM_INIT_AUTOMAKE(gimpilbm, 0.8.8)
+AM_INIT_AUTOMAKE(gimp-ilbm, 0.9.4)
 
 AC_ARG_WITH(gimp,
-[  --with-gimp=DIR         Gimp directory to install to [$HOME/.gimp]],
+[  --with-gimp=DIR         Gimp directory to install to [$HOME/.gimp-1.2]],
 gimpdir=$withval,
-gimpdir=$HOME/.gimp)
+gimpdir=$HOME/.gimp-1.2)
+dnl For compat, the dir was $HOME/.gimp
 gimpplugindir=$gimpdir/plug-ins
 AC_SUBST(gimpdir)
 AC_SUBST(gimpplugindir)
 
+AC_PATH_PROG(GIMPTOOL,gimptool)
+#AC_PATH_PROG(GLIBCONFIG,glib-config)
+#AC_PATH_PROG(GTKCONFIG,gtk-config)
+#AC_PATH_PROG(GIMPCONFIG,gimp-config)
+
+#gimpcflags=" \
+#	$($GLIBCONFIG --cflags) \
+#	$($GTKCONFIG --cflags) \
+#	$($GIMPCONFIG --cflags)"
+#gimpldflags=" \
+#	$($GLIBCONFIG --libs) \
+#	$($GTKCONFIG --libs) \
+#	$($GIMPCONFIG --libs)"
+
+gimpcflags="$($GIMPTOOL --cflags)"
+gimpldflags="$($GIMPTOOL --libs)"
+
 AC_ARG_WITH(debug,
 [  --with-debug=[no|verbose|debug]
-                          Hardcoded debugging (output) level [debug]],
+                          Hardcoded debugging (output) level [verbose]],
 debuglevel=$withval,
-debuglevel=no)
-debugflags="-DDEBUGLEVEL=0 -DG_DISABLE_ASSERT -DNDEBUG"
+debuglevel=verbose)
 
+AC_PROG_CC
+
+cflags=""
 case $debuglevel in
+  no)
+    debugflags="-DDEBUGLEVEL=0 -DG_DISABLE_ASSERT -DNDEBUG"
+  ;;
+  none)
+    debugflags="-DDEBUGLEVEL=0 -DG_DISABLE_ASSERT -DNDEBUG"
+  ;;
   verbose)
     debugflags="-DDEBUGLEVEL=1 -DG_DISABLE_ASSERT"
   ;;
   debug)
     debugflags="-DDEBUGLEVEL=2"
+    if test "$GCC" = yes; then
+      cflags="-g -Wall -W"
+    fi
+  ;;
+  *)
+    debugflags="-DDEBUGLEVEL=2"
   ;;
 esac
 
-AC_SUBST(debuglevel)
-AC_SUBST(debugflags)
+CFLAGS="$gimpcflags $CFLAGS $cflags $RPM_OPT_FLAGS"
+cflags="$CFLAGS $debugflags"
+
+LDFLAGS="$LDFLAGS"
+ldflags="$LDFLAGS $gimpldflags"
+
+AC_SUBST(cflags)
+AC_SUBST(ldflags)
 
 dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_LN_S
-
-AC_PATH_PROG(GIMPTOOL,gimptool)
-dnl AC_PATH_PROG(GTKCONFIG,gtk-config)
 
 dnl Checks for libraries.
 dnl AC_CHECK_LIB(X11, main)
