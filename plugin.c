@@ -10,12 +10,11 @@
 /**** Prototypes ****/
 
 static void queryPlugin(void);
-static void runPlugin(char *name, int nparams, GimpParam * param,
-                      int *nreturn_vals, GimpParam ** return_vals);
+static void runPlugin(const gchar *name, gint nparams, const GimpParam * param, gint int *nreturn_vals, GimpParam **return_vals);
 
 /**** Plugin data ****/
 
-const PluginStructType PLUG_IN_INFO =
+const GimpPlugInInfo PLUG_IN_INFO =
 {
   NULL,		/* init_proc  */
   NULL,		/* quit_proc  */
