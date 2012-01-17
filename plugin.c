@@ -10,7 +10,7 @@
 /**** Prototypes ****/
 
 static void queryPlugin(void);
-static void runPlugin(const gchar *name, gint nparams, const GimpParam * param, gint int *nreturn_vals, GimpParam **return_vals);
+static void runPlugin(const gchar *name, gint nparams, const GimpParam * param, gint *nreturn_vals, GimpParam **return_vals);
 
 /**** Plugin data ****/
 
