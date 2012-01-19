@@ -88,11 +88,13 @@ queryPlugin(void)
   };
   static int nsave_args = sizeof(save_args) / sizeof(*save_args);
 
+  static const gchar *authors = "Johannes Tevess\xc9\xa9n <j.tevessen@gmx.net>,\nEmil Brink <emil@obsession.se>";
+
   gimp_install_procedure(loadFuncID,
                          "Loads IFF-ILBM (InterLeaved BitMap) files",
                          "Currently loading of masks is disabled",
-                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
-                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
+                         authors,
+                         authors,
                          PLUG_IN_VERSION,
                          "<Load>/IFF",
                          NULL,
@@ -103,8 +105,8 @@ queryPlugin(void)
   gimp_install_procedure((char *) saveFuncID,
                          "Saves IFF-ILBM (InterLeaved BitMap) files",
                          "alpha-alpha",
-                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
-                         "Johannes Teveﬂen <j.tevessen@gmx.net>",
+                         authors,
+                         authors,
                          PLUG_IN_VERSION,
                          "<Save>/IFF",
   /* "RGB*,GRAY*,INDEXED" *//* INDEXED* ? */
