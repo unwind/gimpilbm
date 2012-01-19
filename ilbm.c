@@ -19,461 +19,445 @@
 
 /**** BMHD BitMap HeaDer ****/
 
-static void
-valBMHD(ILBMbmhd * bmhd)
+static void valBMHD(ILBMbmhd *bmhd)
 {
-  bmhd->w = ntohs(bmhd->w);
-  bmhd->h = ntohs(bmhd->h);
-  bmhd->x = ntohs(bmhd->x);
-  bmhd->y = ntohs(bmhd->y);
-  bmhd->transparentColor = ntohs(bmhd->transparentColor);
-  bmhd->pageWidth = ntohs(bmhd->pageWidth);
-  bmhd->pageHeight = ntohs(bmhd->pageHeight);
+	bmhd->w = ntohs(bmhd->w);
+	bmhd->h = ntohs(bmhd->h);
+	bmhd->x = ntohs(bmhd->x);
+	bmhd->y = ntohs(bmhd->y);
+	bmhd->transparentColor = ntohs(bmhd->transparentColor);
+	bmhd->pageWidth = ntohs(bmhd->pageWidth);
+	bmhd->pageHeight = ntohs(bmhd->pageHeight);
 }
 
-static void
-genBMHD(ILBMbmhd * bmhd,
-        guint16 width, guint16 height,
-        guint8 depth)
+static void genBMHD(ILBMbmhd *bmhd, guint16 width, guint16 height, guint8 depth)
 {
-  memset(bmhd, 0, sizeof(ILBMbmhd));
-  bmhd->w = bmhd->pageWidth = htons(width);
-  bmhd->h = bmhd->pageHeight = htons(height);
-  bmhd->nPlanes = depth;
-  bmhd->compression = cmpNone;
-  bmhd->xAspect = bmhd->yAspect = 1;
+	memset(bmhd, 0, sizeof *bmhd);
+	bmhd->w = bmhd->pageWidth = htons(width);
+	bmhd->h = bmhd->pageHeight = htons(height);
+	bmhd->nPlanes = depth;
+	bmhd->compression = cmpNone;
+	bmhd->xAspect = bmhd->yAspect = 1;
 }
 
-static void
-dumpBMHD(const ILBMbmhd * bmhd)
+static void dumpBMHD(const ILBMbmhd *bmhd)
 {
-  printf("%ubit image %ux%u, max. %lu colors, %s\n",
-         bmhd->nPlanes, bmhd->w, bmhd->h,
-         1L << bmhd->nPlanes,
-         (bmhd->nPlanes >= 12) ? "RGB" : "indexed"
-    );
-  /* RGB check okay? */
-  printf("x/y = %d/%d, Masking:%u, Compr.:%u\n",
-         bmhd->x, bmhd->y,
-         bmhd->masking, bmhd->compression
-    );
-  printf("Transparent color: %u, Aspect: %u/%u\n",
-         bmhd->transparentColor,
-         bmhd->xAspect, bmhd->yAspect
-    );
-  printf("Page size: %dx%d\n",
-         bmhd->pageWidth, bmhd->pageHeight
-    );
+	printf("%ubit image %ux%u, max. %lu colors, %s\n", bmhd->nPlanes, bmhd->w, bmhd->h, 1L << bmhd->nPlanes, (bmhd->nPlanes >= 12) ? "RGB" : "indexed");
+	/* RGB check okay? */
+	printf("x/y = %d/%d, Masking:%u, Compr.:%u\n", bmhd->x, bmhd->y, bmhd->masking, bmhd->compression);
+	printf("Transparent color: %u, Aspect: %u/%u\n", bmhd->transparentColor, bmhd->xAspect, bmhd->yAspect);
+	printf("Page size: %dx%d\n", bmhd->pageWidth, bmhd->pageHeight);
 }
 
 /**** CAMG  Commodore AMiGa ****/
 
-static void
-valCAMG(ILBMcamg * camg)
+static void valCAMG(ILBMcamg *camg)
 {
-  camg->viewModes = ntohl(camg->viewModes) & CAMGMASK;
+	camg->viewModes = ntohl(camg->viewModes) & CAMGMASK;
 }
 
-static void
-dumpCAMG(const ILBMcamg * camg)
+static void dumpCAMG(const ILBMcamg *camg)
 {
-  printf("ViewModes: 0x%08lx  ", (unsigned long) camg->viewModes);
-  if (camg->viewModes & hiRes)
-    fputs("HIRES ", stdout);
-  if (camg->viewModes & ham)
-    fputs("HAM ", stdout);
-  if (camg->viewModes & extraHalfbrite)
-    fputs("EHB ", stdout);
-  if (camg->viewModes & lace)
-    fputs("LACE ", stdout);
-  fputs("\n", stdout);
+	printf("ViewModes: 0x%08lx  ", (unsigned long) camg->viewModes);
+	if(camg->viewModes & hiRes)
+		fputs("HIRES ", stdout);
+	if(camg->viewModes & ham)
+		fputs("HAM ", stdout);
+	if(camg->viewModes & extraHalfbrite)
+		fputs("EHB ", stdout);
+	if(camg->viewModes & lace)
+		fputs("LACE ", stdout);
+	fputs("\n", stdout);
 }
 
 /**** DPI  Dots Per Inch ****/
 
-static void
-valDPI(ILBMdpi * dpi)
+static void valDPI(ILBMdpi *dpi)
 {
-  dpi->dpiX = ntohs(dpi->dpiX);
-  dpi->dpiY = ntohs(dpi->dpiY);
+	dpi->dpiX = ntohs(dpi->dpiX);
+	dpi->dpiY = ntohs(dpi->dpiY);
 }
 
-static void
-dumpDPI(const ILBMdpi * dpi)
+static void dumpDPI(const ILBMdpi *dpi)
 {
-  printf("Scan resolution: %hux%hu dpi\n",
-         dpi->dpiX, dpi->dpiY);
+	printf("Scan resolution: %hux%hu dpi\n", dpi->dpiX, dpi->dpiY);
 }
 
 /**** GRAB  Image hotspot ****/
 
-static void
-valGRAB(ILBMgrab * grab)
+static void valGRAB(ILBMgrab *grab)
 {
-  grab->grabX = ntohs(grab->grabX);
-  grab->grabY = ntohs(grab->grabY);
+	grab->grabX = ntohs(grab->grabX);
+	grab->grabY = ntohs(grab->grabY);
 }
 
-static void
-dumpGRAB(const ILBMgrab * grab)
+static void dumpGRAB(const ILBMgrab *grab)
 {
-  printf("Grab hotspot: (%hd/%hd)\n",
-         grab->grabX, grab->grabY);
+	printf("Grab hotspot: (%hd/%hd)\n", grab->grabX, grab->grabY);
 }
 
 /**** DEST  DestMerge masks ****/
 
-static void
-valDEST(ILBMdest * dest)
+static void valDEST(ILBMdest *dest)
 {
-  dest->planePick = ntohs(dest->planePick);
-  dest->planeOnOff = ntohs(dest->planeOnOff);
-  dest->planeMask = ntohs(dest->planeMask);
+	dest->planePick = ntohs(dest->planePick);
+	dest->planeOnOff = ntohs(dest->planeOnOff);
+	dest->planeMask = ntohs(dest->planeMask);
 }
 
-static void
-dumpDEST(ILBMdest * dest)
+static void dumpDEST(ILBMdest *dest)
 {
-  printf("DEST depth: %hd\n"
-         "     planePick: %04hX planeOnOff: %04hX\n"
-         "     planeMask: %04hX\n",
-         (short)dest->depth,
-         dest->planePick, dest->planeOnOff,
-         dest->planeMask);
+	printf("DEST depth: %hd\n"
+		 "     planePick: %04hX planeOnOff: %04hX\n"
+		 "     planeMask: %04hX\n",
+		 (short) dest->depth, dest->planePick, dest->planeOnOff, dest->planeMask);
 }
 
 /**** SPRT  Sprite ****/
 
-static void
-valSPRT(ILBMsprt * sprt)
+static void valSPRT(ILBMsprt *sprt)
 {
-  sprt->preced = ntohs(sprt->preced);
+	sprt->preced = ntohs(sprt->preced);
 }
 
-static void
-dumpSPRT(ILBMsprt * sprt)
+static void dumpSPRT(ILBMsprt *sprt)
 {
-  printf("Sprite Precedence: %hu\n", sprt->preced);
+	printf("Sprite Precedence: %hu\n", sprt->preced);
 }
 
 /**** RGBN8 ****/
 
-static gboolean
-packRGBN8(FILE * fil, const grayval * rgbbuf, gint32 pixelNeeded,
-          IffID ftype, gboolean alpha)
+static gboolean packRGBN8(FILE *file, const grayval *rgbbuf, gint32 pixelNeeded, IffID ftype, gboolean alpha)
 {
-  gboolean success = 1;
-  guint32 actclong = 0;
-  guint16 repeat = 0;
-  gboolean isfirst = 1;
-  g_assert ((ftype == ID_RGB8) || (ftype == ID_RGBN));
-  if (!pixelNeeded) return (1);
-  alpha = alpha != 0;
-  while (pixelNeeded > 0) {
-    guint32 clong;
-    if (ftype == ID_RGB8) {
-      clong = (((guint32)*rgbbuf)<<24)
-            | (((guint32)rgbbuf[1])<<16)
-            | (((guint32)rgbbuf[2])<<8)
-            | (((guint32)alpha)<<7);
-    } else {
-      clong = (((guint16)gray8ToHam4(*rgbbuf))<<12)
-            | (((guint16)gray8ToHam4(rgbbuf[1]))<<8)
-            | (((guint16)gray8ToHam4(rgbbuf[2]))<<4)
-            | (((guint16)alpha)<<3);
-    }
-    if (isfirst) {
-      actclong = clong;
-      isfirst = 0;
-    }
-    if ((clong != actclong)
-        || (repeat == ((ftype == ID_RGB8)?127:7))
-    ) {
-      actclong |= repeat;
-      if (ftype == ID_RGB8)
-        success = writeUlong(fil, actclong);
-      else
-        success = writeUword(fil, actclong);
-      if (!success)
-        break;
-      actclong = clong;
-      isfirst = 0;	/* FIXME: optimize */
-      repeat = 1;
-    } else {
-      ++repeat;		/* FIXME: check for max. */
-    }
-    rgbbuf += byteppRGB + (alpha != 0);
-    --pixelNeeded;
-  }
-  if (repeat) {
-    actclong |= repeat;
-    if (ftype == ID_RGB8)
-      success = writeUlong(fil, actclong);
-    else
-      success = writeUword(fil, actclong);
-  }
-  return (success);
+	gboolean	success = TRUE;
+	guint32		actclong = 0;
+	guint16		repeat = 0;
+	gboolean	isfirst = TRUE;
+
+	g_assert((ftype == ID_RGB8) || (ftype == ID_RGBN));
+
+	if(!pixelNeeded)
+		return TRUE;
+	alpha = alpha != 0;
+	while(pixelNeeded > 0)
+	{
+		guint32	clong;
+		if(ftype == ID_RGB8)
+		{
+			clong = (((guint32)*rgbbuf)<<24)
+			    | (((guint32)rgbbuf[1])<<16)
+			    | (((guint32)rgbbuf[2])<<8)
+			    | (((guint32)alpha)<<7);
+		}
+		else
+		{
+			clong = (((guint16)gray8ToHam4(*rgbbuf))<<12)
+			    | (((guint16)gray8ToHam4(rgbbuf[1]))<<8)
+			    | (((guint16)gray8ToHam4(rgbbuf[2]))<<4)
+			    | (((guint16)alpha)<<3);
+		}
+		if(isfirst)
+		{
+			actclong = clong;
+			isfirst = 0;
+		}
+		if((clong != actclong) || (repeat == ((ftype == ID_RGB8)?127:7)))
+		{
+			actclong |= repeat;
+			if(ftype == ID_RGB8)
+				success = writeUlong(file, actclong);
+			else
+				success = writeUword(file, actclong);
+			if(!success)
+				break;
+			actclong = clong;
+			isfirst = 0;	/* FIXME: optimize */
+			repeat = TRUE;
+		}
+		else
+			++repeat;		/* FIXME: check for max. */
+		rgbbuf += byteppRGB + (alpha != 0);
+		--pixelNeeded;
+	}
+	if(repeat)
+	{
+		actclong |= repeat;
+		if (ftype == ID_RGB8)
+			success = writeUlong(file, actclong);
+		else
+			success = writeUword(file, actclong);
+	}
+	return success;
 }
 
-static gboolean
-unpackRGBN8(FILE * fil, grayval * rgbbuf, gint32 pixelNeeded,
-            IffID ftype, gboolean alpha)
+static gboolean unpackRGBN8(FILE *file, grayval *rgbbuf, gint32 pixelNeeded, IffID ftype, gboolean alpha)
 {
-  gboolean success = 1;
-  grayval ca = 0;               /* Make gcc happy */
-  while (pixelNeeded > 0) {
-    guint32 repeat;
-    grayval cr, cg, cb;
-    if (ID_RGBN == ftype) {
-      guint16 cword;
-      if (!(success = readUword(fil, &cword))) {
-        break;
-      } else {
-        cr = ham4bitToGray8(cword >> 12);
-        cg = ham4bitToGray8((cword >> 8) & 0xF);
-        cb = ham4bitToGray8((cword >> 4) & 0xF);
-        repeat = cword & 7;
-        if (alpha) {
-          ca = ((cword >> 3) & 1) ? transparent : opaque;
-        }
-      }
-    } else {
-      guint32 clong;
-      if (!(success = readUlong(fil, &clong))) {
-        break;
-      } else {
-        cr = clong >> 24;
-        cg = (clong >> 16) & 0xFF;
-        cb = (clong >> 8) & 0xFF;
-        repeat = clong & 0x7F;
-        if (alpha) {
-          ca = ((clong >> 7) & 1) ? transparent : opaque;
-        }
-      }
-    }
-    if (!repeat) {
-      guint8 cbyte;
-      if (!(success = readUchar(fil, &cbyte))) {
-        break;
-      } else {
-        if (cbyte) {
-          repeat = cbyte;
-        } else {
-          guint16 cword;
-          if (!(success = readUword(fil, &cword))) {
-            break;
-          } else {
-            if (!cword) {
-              repeat = 65536;
-            } else {
-              repeat = cword;
-            }
-          }
-        }
-      }
-    }
-    while (pixelNeeded && repeat--) {
-      *rgbbuf++ = cr;
-      *rgbbuf++ = cg;
-      *rgbbuf++ = cb;
-      if (alpha) {
-        *rgbbuf++ = ca;
-      }
-      --pixelNeeded;
-    }
-  }
-  return (success);
+	gboolean	success = TRUE;
+	grayval		ca = 0;               /* Make gcc happy */
+
+	while(pixelNeeded > 0)
+	{
+		guint32	repeat;
+		grayval	cr, cg, cb;
+
+		if(ID_RGBN == ftype)
+		{
+			guint16	cword;
+
+			if(!(success = readUword(file, &cword)))
+				break;
+			else 
+			{
+				cr = ham4bitToGray8(cword >> 12);
+				cg = ham4bitToGray8((cword >> 8) & 0xF);
+				cb = ham4bitToGray8((cword >> 4) & 0xF);
+				repeat = cword & 7;
+				if(alpha)
+					ca = ((cword >> 3) & 1) ? transparent : opaque;
+			}
+		}
+		else
+		{
+			guint32	clong;
+
+			if(!(success = readUlong(file, &clong)))
+				break;
+			else
+			{
+				cr = clong >> 24;
+				cg = (clong >> 16) & 0xFF;
+				cb = (clong >> 8) & 0xFF;
+				repeat = clong & 0x7F;
+				if(alpha)
+					ca = ((clong >> 7) & 1) ? transparent : opaque;
+			}
+		}
+		if(!repeat)
+		{
+			guint8	cbyte;
+			if(!(success = readUchar(file, &cbyte)))
+				break;
+			else
+			{
+				if(cbyte)
+				  repeat = cbyte;
+				else
+				{
+					guint16	cword;
+
+					if(!(success = readUword(file, &cword)))
+						break;
+					else
+					{
+						if(!cword)
+							repeat = 65536;
+						else
+							repeat = cword;
+					}
+				}
+			}
+		}
+		while(pixelNeeded && repeat--)
+		{
+			*rgbbuf++ = cr;
+			*rgbbuf++ = cg;
+			*rgbbuf++ = cb;
+			if(alpha)
+				*rgbbuf++ = ca;
+			--pixelNeeded;
+		}
+	}
+	return success;
 }
 
 
-static void
-unpackBits(const guint8 * bitlinebuf,
-           guint8 * destline, gint bitnr, gint width)
+static void unpackBits(const guint8 *bitlinebuf, guint8 *destline, gint bitnr, gint width)
 {
-  guint8 setmask = 1 << bitnr;
-  g_assert(bitlinebuf != NULL);
-  g_assert(destline != NULL);
-  while (width > 0) {
-    guint8 checkmask;
-    for (checkmask = 1 << 7; width && checkmask; checkmask >>= 1) {
-      if (*bitlinebuf & checkmask) {
-        *destline |= setmask;
-      }
-      ++destline;
-      --width;
-    }
-    ++bitlinebuf;
-  }
+	guint8	setmask = 1 << bitnr;
+
+	g_assert(bitlinebuf != NULL);
+	g_assert(destline != NULL);
+	while(width > 0)
+	{
+		guint8	checkmask;
+		for(checkmask = 1 << 7; width && checkmask; checkmask >>= 1)
+		{
+			if(*bitlinebuf & checkmask)
+				*destline |= setmask;
+			++destline;
+			--width;
+		}
+		++bitlinebuf;
+	}
 }
 
-static void
-setBits(guint8 * destline, gint bitnr, gint width)
+static void setBits(guint8 *destline, gint bitnr, gint width)
 {
-  guint8 setmask = 1 << bitnr;
-  width <<= 3;	/* is now number of pixels */
-  while (width > 0) {
-    *destline |= setmask;
-    ++destline;
-    --width;
-  }
+	const guint8	setmask = 1 << bitnr;
+
+	width <<= 3;	/* is now number of pixels */
+	while(width > 0)
+	{
+		*destline |= setmask;
+		++destline;
+		--width;
+	}
 }
 
-static void
-clrBits(guint8 * destline, gint bitnr, gint width)
+static void clrBits(guint8 *destline, gint bitnr, gint width)
 {
-  guint8 clrmask = ~(1 << bitnr);
-  width <<= 3;	/* is now number of pixels */
-  while (width > 0) {
-    *destline &= clrmask;
-    ++destline;
-    --width;
-  }
+	const guint8	clrmask = ~(1 << bitnr);
+
+	width <<= 3;	/* is now number of pixels */
+	while(width > 0)
+	{
+		*destline &= clrmask;
+		++destline;
+		--width;
+	}
 }
 
-static gint
-numBitsSet (guint32 val)
+static gint numBitsSet(guint32 val)
 {
-  gint bitsSet = 0;
-  while ((val)) {
-    if (val & 1) {
-      ++bitsSet;
-    }
-    val >>= 1;
-  }
-  return (bitsSet);
+	gint	bitsSet = 0;
+
+	while(val != 0)
+	{
+		if(val & 1)
+			++bitsSet;
+		val >>= 1;
+	}
+	return bitsSet;
 }
 
-static void
-writeRGB(const grayval * destline, grayval * dest, gint numPixels, gint bytepp)
+static void writeRGB(const grayval *destline, grayval *dest, gint numPixels, gint bytepp)
 {
-  g_assert(destline != NULL);
-  g_assert(dest != NULL);
-  g_assert(bytepp > 0);
-  while (numPixels--) {
-    *dest = *destline++;
-    dest += bytepp;             /*4 */
-  }
+	g_assert(destline != NULL);
+	g_assert(dest != NULL);
+	g_assert(bytepp > 0);
+
+	while(numPixels--)
+	{
+		*dest = *destline++;
+		dest += bytepp;             /*4 */
+	}
 }
 
-static void
-bitExpandStep(guint8 * dest, const guint8 * src, gint width, gint step)
+static void bitExpandStep(guint8 *dest, const guint8 *src, gint width, gint step)
 {
-  /* Expands alpha masks to 0x00/0xFF style lines */
-  guint8 bit = 1 << 7;
-  g_assert(dest != NULL);
-  g_assert(src != NULL);
-  g_assert(step > 0);
-  while (width--) {
-    *dest = (*src & bit) ? opaque : transparent;
-    dest += step;
-    bit >>= 1;
-    if (!bit) {
-      bit = 1 << 7;
-      ++src;
-    }
-  }
+	/* Expands alpha masks to 0x00/0xFF style lines */
+	guint8	bit = 1 << 7;
+
+	g_assert(dest != NULL);
+	g_assert(src != NULL);
+	g_assert(step > 0);
+
+	while(width--)
+	{
+		*dest = (*src & bit) ? opaque : transparent;
+		dest += step;
+		bit >>= 1;
+		if(bit == 0)
+		{
+			bit = 1 << 7;
+			++src;
+		}
+	}
 }
 
-static gboolean
-readPlaneRow(FILE * fil, guint8 * bitDest, gint bytesInPlaneRow, gint16 compression)
+static gboolean readPlaneRow(FILE *file, guint8 *bitDest, gint bytesInPlaneRow, gint16 compression)
 {
-  gboolean success = 0;
-  switch (compression) {
-    case cmpByteRun1:
-      success = unpackRow(fil, (gint8 *) bitDest, bytesInPlaneRow);
-      break;
-    case cmpRGBN:
-    case cmpRGB8:
-      fputs("(RGBN/RGB8 compression mode 4/x found)\n", stderr);
-    default:                   /* fall-thru */
-      fputs("Unknown compression mode---reading raw.\n", stderr);
-    case cmpNone:
-      success = iffReadData(fil, bitDest, bytesInPlaneRow);
-      if (!success) {
-        if (feof(fil))
-          fputs("Unexpected EOF\n", stderr);
-        else
-          perror("readPlaneRow");
-      }
-      break;
-  }
-  return (success);
+	gboolean	success = FALSE;
+
+	switch(compression)
+	{
+	case cmpByteRun1:
+		success = unpackRow(file, (gint8 *) bitDest, bytesInPlaneRow);
+		break;
+	case cmpRGBN:
+	case cmpRGB8:
+		fputs("(RGBN/RGB8 compression mode 4/x found)\n", stderr);
+	default:                   /* fall-thru */
+		fputs("Unknown compression mode---reading raw.\n", stderr);
+	case cmpNone:
+		success = iffReadData(file, bitDest, bytesInPlaneRow);
+		if(!success)
+		{
+			if(feof(file))
+				fputs("Unexpected EOF\n", stderr);
+			else
+				perror("readPlaneRow");
+		}
+		break;
+	}
+	return success;
 }
 
-static guint8 *
-allocPackedBuf(gint bytesInPlaneRow, gint16 compression)
+static guint8 * allocPackedBuf(gint bytesInPlaneRow, gint16 compression)
 {
-  guint8 *packedBuf = NULL;     /* NULL is a valid value here */
-  if (cmpByteRun1 == compression) {
-    packedBuf = g_new(guint8, bytesInPlaneRow + 8);  /* FIXME: 8 enough? */
-    if (!packedBuf) {
-      fputs("Out of memory.\n", stderr);
-    }
-  }
-  return (packedBuf);
+	guint8	*packedBuf = NULL;     /* NULL is a valid value here */
+
+	if(cmpByteRun1 == compression)
+	{
+		packedBuf = g_new(guint8, bytesInPlaneRow + 8);  /* FIXME: 8 enough? */
+		if(packedBuf == NULL)
+			fputs("Out of memory.\n", stderr);
+	}
+	return packedBuf;
 }
 
-static void
-freePackedBuf(guint8 * packedBuf)
+static void freePackedBuf(guint8 *packedBuf)
 {
-  if (NULL != packedBuf) {
-    g_free(packedBuf);
-  }
+	g_free(packedBuf);
 }
 
-static gboolean
-writePlaneRow(FILE * fil, const guint8 * bitSrc,
-              gint bytesInPlaneRow, gint16 compression,
-              guint8 * packedBuf)
+static gboolean writePlaneRow(FILE *file, const guint8 *bitSrc, gint bytesInPlaneRow, gint16 compression, guint8 *packedBuf)
 {
-  gboolean success;
-  switch (compression) {
-    case cmpByteRun1:
-      {
-        gint32 written;
-        written = packRow(packedBuf, bitSrc, bytesInPlaneRow);
-        if (written > 0) {
-          success = iffWriteData(fil, packedBuf, written);
-        } else
-          success = 0;
-      }
-      break;
-    default:                   /* Error message? */
-    case cmpNone:
-      success = iffWriteData(fil, bitSrc, bytesInPlaneRow);
-      if (!success)
-        perror("writePlaneRow");
-      break;
-  }
-  if (!success)
-    fprintf(stderr, "writePlaneRow: Error.\n");
-  return (success);
+	gboolean success;
+
+	switch (compression)
+	{
+	case cmpByteRun1:
+		{
+			gint32 written;
+			written = packRow(packedBuf, bitSrc, bytesInPlaneRow);
+			if(written > 0)
+				success = iffWriteData(file, packedBuf, written);
+			else
+				success = FALSE;
+		}
+		break;
+	default:                   /* Error message? */
+	case cmpNone:
+		success = iffWriteData(file, bitSrc, bytesInPlaneRow);
+		if(!success)
+			perror("writePlaneRow");
+		break;
+	}
+	if(!success)
+		fprintf(stderr, "writePlaneRow: Error.\n");
+	return success;
 }
 
-static void
-checkIdxRanges (palidx* row, gint width, gint ncols)
+static void checkIdxRanges(palidx *row, gint width, gint ncols)
 {
-  while(width--) {
-    if (*row >= ncols) {
-      *row = 0;	/* FIXME: Maybe a message? */
-    }
-    ++row;
-  }
+	while(width--)
+	{
+		if(*row >= ncols)
+			*row = 0;	/* FIXME: Maybe a message? */
+		++row;
+	}
 }
 
-static void
-parseLines(FILE * fil, guint8 * dst,
-           gint width, gint hereheight,
-           const ILBMbmhd * bmhd, const ILBMdest * dest,
-           const grayval * cmap, gint ncols,
-           guint32 viewModes, const grayval * grayTrans,
-           IffID ftype)
+static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, const ILBMbmhd *bmhd, const ILBMdest *dest, const grayval *cmap,
+			gint ncols, guint32 viewModes, const grayval *grayTrans, IffID ftype)
 {
-  guint8 *destline = g_new(guint8, width);  /* +1? */
-  guint8 *bitlinebuf = g_new(guint8, BYTEPL(width));
+	guint8	*destline = g_new(guint8, width);  /* +1? */
+	guint8	*bitlinebuf = g_new(guint8, BYTEPL(width));
+
   /* FIXME: check both */
   if ((ID_RGB8 == ftype) || (ID_RGBN == ftype)) {
-    gboolean success = unpackRGBN8(fil, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);
+    gboolean success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);
     /* above expression unused ATM */
     dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
     /* This way alpha doesn't work with RGB8 */
@@ -486,7 +470,7 @@ parseLines(FILE * fil, guint8 * dst,
         gint bitnr;
         (void) memset(destline, 0, width);
         for (bitnr = 0; bitnr < bitppGray; ++bitnr) {
-          readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+          readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
           unpackBits(bitlinebuf, destline, bitnr, width);
         }
         writeRGB(destline, dst + rgb, width,
@@ -495,7 +479,7 @@ parseLines(FILE * fil, guint8 * dst,
       if (bmhd->masking != mskNone) {
         switch (bmhd->masking) {
           case mskHasMask:
-            readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+            readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
             bitExpandStep(dst + byteppRGB, bitlinebuf, width, byteppRGBA);
             break;
           case mskHasTransparentColor:
@@ -520,7 +504,7 @@ parseLines(FILE * fil, guint8 * dst,
       if (ID_PBM_ == ftype) {
         /* Chunky */
         /* We always read 1 byte per pixel, so "width" bytes. */
-        readPlaneRow(fil,destline,width,bmhd->compression);
+        readPlaneRow(file,destline,width,bmhd->compression);
         /* Are there IPBMs with maybe another byte pp for alpha? */
       } else {
         (void) memset(destline, 0, width);
@@ -529,7 +513,7 @@ parseLines(FILE * fil, guint8 * dst,
         for (bitnr = 0; bitnr < dest->depth; ++bitnr) {
           if (dest->planePick & (1 << bitnr)) {
             /* "put the next source bitplane into this bitplane" */
-            readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+            readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
             unpackBits(bitlinebuf, destline, bitnr, width);  /* +7/8? */
           } else {
             /* "put the corresponding bit from planeOnOff into this bitplane" */
@@ -544,7 +528,7 @@ parseLines(FILE * fil, guint8 * dst,
 #else
         {
           char blbuf[BYTEPL(width) * bmhd->nPlanes];
-          readPlaneRow(fil, blbuf, BYTEPL(width) * bmhd->nPlanes, bmhd->compression);
+          readPlaneRow(file, blbuf, BYTEPL(width) * bmhd->nPlanes, bmhd->compression);
           for (bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr) {
             unpackBits(blbuf + (bitnr * BYTEPL(width)), destline, bitnr, width);
           }
@@ -562,7 +546,7 @@ parseLines(FILE * fil, guint8 * dst,
           case mskHasMask:
             /* Only if image is plane- and per-line-based */
             if (ID_ILBM == ftype) {
-              readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+              readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
               bitExpandStep(dst + byteppGray, bitlinebuf, width, byteppGrayA);
             }
             break;
@@ -602,14 +586,14 @@ parseLines(FILE * fil, guint8 * dst,
       gint bitnr;
       (void) memset(destline, 0, width);
       for (bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr) {
-        readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+        readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
         unpackBits(bitlinebuf, destline, bitnr, width);
       }
       deHam(dst, destline, width, bmhd->nPlanes, cmap, bmhd->masking != mskNone);
       if (bmhd->masking != mskNone) {
         switch (bmhd->masking) {
           case mskHasMask:
-            readPlaneRow(fil, bitlinebuf, BYTEPL(width), bmhd->compression);
+            readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
             bitExpandStep(dst + byteppRGB, bitlinebuf, width, byteppRGBA);
             break;
           case mskHasTransparentColor:
@@ -642,30 +626,28 @@ parseLines(FILE * fil, guint8 * dst,
   g_free(destline);
 }
 
-static void
-setCmap(gint32 imageID, const guint8 * cmap, gint ncols)
+static void setCmap(gint32 imageID, const guint8 *cmap, gint ncols)
 {
-  g_assert (NULL != cmap);
-  g_assert (0 != ncols);
-  if (VERBOSE)
-    printf("Setting cmap (%d colors)...\n", ncols);
-  gimp_image_set_cmap(imageID, (guchar *) cmap, ncols);
+	g_assert (NULL != cmap);
+	g_assert (0 != ncols);
+	if(VERBOSE)
+		printf("Setting cmap (%d colors)...\n", ncols);
+	gimp_image_set_cmap(imageID, (guchar *) cmap, ncols);
 }
 
 
 /**** Loading ****/
 /*                loadBODY (fil, &bmhd, &camg, cmap, grayTrans);*/
 
-static gboolean
-loadBODY(gboolean succ, FILE * fil, IffID ftype, const char* filename, const ILBMbmhd* bmhd, ILBMcamg* camg, ILBMdest* dest,
-         gboolean hasDest, grayval** cmap, gint ncols, const grayval* grayTrans, gint32* imageID)
+static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *filename, const ILBMbmhd *bmhd, ILBMcamg *camg,
+			ILBMdest *dest, gboolean hasDest, grayval **cmap, gint ncols, const grayval *grayTrans, gint32 *imageID)
 {
-          GimpDrawable *drawable;
-                  guint tileHeight;  /* guint is the return value */
-                  guint8 *buf;
-                  gboolean exportRGB, isGray = 0;
-                  gint32 layerID = -1;
-                  GimpPixelRgn pixelRegion;
+	GimpDrawable	*drawable;
+	guint		tileHeight;  /* guint is the return value */
+	guint8		*buf;
+	gboolean	exportRGB, isGray = 0;
+	gint32		layerID = -1;
+	GimpPixelRgn	pixelRegion;
 
                   if (hasDest) {
                     /* mmh, should we take mask in account here? */
@@ -786,7 +768,7 @@ loadBODY(gboolean succ, FILE * fil, IffID ftype, const char* filename, const ILB
                       if (VERBOSE)
                         printf("Processing lines%5d upto%5d (%2d)...\n",
                                actTop, actTop + scanlines - 1, scanlines);
-                      parseLines(fil, buf, bmhd->w, scanlines,
+                      parseLines(file, buf, bmhd->w, scanlines,
                              bmhd, dest, *cmap, ncols, camg->viewModes, grayTrans, ftype);
                       gimp_progress_update((double) actTop / (double) bmhd->h);
                       gimp_pixel_rgn_set_rect(&pixelRegion, buf,
@@ -795,33 +777,34 @@ loadBODY(gboolean succ, FILE * fil, IffID ftype, const char* filename, const ILB
                     }
                     gimp_progress_update(1.0);
                     g_free(buf);
-                  }
-                  gimp_drawable_flush(drawable);  /* unneccessary? */
-                  gimp_drawable_detach(drawable);
-  return (succ);
+	}
+	gimp_drawable_flush(drawable);  /* unneccessary? */
+	gimp_drawable_detach(drawable);
+	return succ;
 }
 
 #include <sys/times.h>
 static struct tms tms;
 
-void
-timerStart (void) {
-  fputs ("Starting timer.\n", stderr);
-  (void) times (&tms);
+void timerStart(void)
+{
+	fputs("Starting timer.\n", stderr);
+	(void) times(&tms);
 }
 
-void
-timerStop (void) {
-  struct tms tms2;
-  (void) times (&tms2);
-  fputs ("Timer stopped.\n", stderr);
-  fprintf (stderr,
-           "User   : %12ld %12ld\n"
-           "System : %12ld %12ld\n",
-           tms2.tms_utime - tms.tms_utime,
-           tms2.tms_cutime - tms.tms_cutime,
-           tms2.tms_stime - tms.tms_stime,
-           tms2.tms_cstime - tms.tms_cstime);
+void timerStop (void)
+{
+	struct tms tms2;
+
+	(void) times(&tms2);
+	fputs("Timer stopped.\n", stderr);
+	fprintf(stderr,
+		"User   : %12ld %12ld\n"
+		"System : %12ld %12ld\n",
+		tms2.tms_utime - tms.tms_utime,
+		tms2.tms_cutime - tms.tms_cutime,
+		tms2.tms_stime - tms.tms_stime,
+		tms2.tms_cstime - tms.tms_cstime);
 }
 
 gint32
@@ -1055,23 +1038,22 @@ extractAlpha(guint8 * dest, const guint8 * src, gint32 width,
  *  (at least) needed to store the given number
  *  of colors
  */
-
-static gint
-calcPlanes(gint ncols)
+static gint calcPlanes(gint ncols)
 {
-  gint planes = 1;
-  gint powr = 2;
-  while (powr < ncols) {
-    ++planes;
-    powr <<= 1;
-  }
-  return (planes);
+	gint	planes = 1;
+	gint	powr = 2;
+
+	while(powr < ncols)
+	{
+		++planes;
+		powr <<= 1;
+	}
+	return planes;
 }
 
 /*  Write CMAP header to file, using the given
  *  palette of the given number of colors.
  */
-
 static gint32
 writeCMAP(FILE * fil, const grayval * cmap, gint palWidth)
 {
