@@ -4,22 +4,20 @@
 #include <gtk/gtk.h>
 
 typedef struct {
-  gdouble threshold;
-  gint32 compress;
-  gint32 save_ham;
-  gint32 save_chunky;
-  gint32 set_backgnd;
+	gdouble	threshold;
+	gint32	compress;
+	gint32	save_ham;
+	gint32	save_chunky;
+	gint32	set_backgnd;
 } ILBMSaveVals;
 
 typedef struct {
-  gint run;
+	gint	run;
 } ILBMSaveInterface;
 
-extern ILBMSaveVals ilbmvals;
-extern ILBMSaveInterface ilbmint;
+extern ILBMSaveVals		ilbmvals;
+extern ILBMSaveInterface	ilbmint;
 
-extern const char loadFuncID[];
-extern const char saveFuncID[];
-extern const char nameExtensions[];
+extern const gchar *saveFuncID;
 
 #endif
