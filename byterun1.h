@@ -10,7 +10,7 @@
 #endif
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-gint32 packRow(guint8 * odest, const guint8 * src, guint32 width);
-gboolean unpackRow(FILE * fil, gint8 * bitlinebuf, gint32 bytesNeeded);
+extern gint32	packRow(guint8 *odest, const guint8 *src, guint32 width);
+extern gboolean unpackRow(FILE *file, gint8 *bitlinebuf, gint32 bytesNeeded);
 
 #endif
