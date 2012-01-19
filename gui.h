@@ -3,6 +3,6 @@
 
 #include <gtk/gtk.h>
 
-gint saveDialog(void);
+extern gint	saveDialog(void);
 
 #endif
