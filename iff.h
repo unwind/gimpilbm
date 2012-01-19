@@ -20,35 +20,35 @@
 typedef guint32 IffID;
 
 typedef struct {
-  IffID id;
-  guint32 len;
+	IffID	id;
+	guint32	len;
 } IffChunkHeader;
 
 typedef struct {
-  IffChunkHeader hdr;
-  FILE* fil;
-  long offs;
-  guint32 undone;
+	IffChunkHeader	hdr;
+	FILE*		file;
+	long		offs;
+	guint32		undone;
 } IffChunkStream;
 
 typedef struct {
-  FILE* fil;
+	FILE* file;
 } IffHandle;
 
-void idToString(IffID id, char *str);
-gboolean readUlong(FILE * fil, guint32 * dest);
-gboolean writeUlong(FILE * fil, guint32 val);
-gboolean readUword(FILE * fil, guint16 * dest);
-gboolean writeUword(FILE * fil, guint16 val);
-gboolean readUchar(FILE * fil, guint8 * dest);
-gboolean writeUchar(FILE * fil, guint8 val);
-gboolean writeLongAt(FILE * fil, gint32 val, gint32 fileOffset);
-gboolean iffReadHeader(FILE * fil, IffChunkHeader * chd);
-gboolean iffWriteHeader(FILE * fil, const IffChunkHeader * chd);
-void iffInitHeader(IffChunkHeader * chd, IffID id, guint32 len);
-void iffDumpHeader(const IffChunkHeader * chd);
-gboolean iffReadData(FILE * fil, void *data, size_t len);
-gboolean iffWriteData(FILE * fil, const void *data, size_t len);
+extern void	idToString(IffID id, gchar *str);
+extern gboolean	readUlong(FILE * file, guint32 * dest);
+extern gboolean	writeUlong(FILE * file, guint32 val);
+extern gboolean	readUword(FILE * file, guint16 * dest);
+extern gboolean	writeUword(FILE * file, guint16 val);
+extern gboolean	readUchar(FILE * file, guint8 * dest);
+extern gboolean	writeUchar(FILE * file, guint8 val);
+extern gboolean	writeLongAt(FILE * file, gint32 val, gint32 fileOffset);
+extern gboolean	iffReadHeader(FILE * file, IffChunkHeader * chd);
+extern gboolean	iffWriteHeader(FILE * file, const IffChunkHeader * chd);
+extern void	iffInitHeader(IffChunkHeader * chd, IffID id, guint32 len);
+extern void	iffDumpHeader(const IffChunkHeader * chd);
+extern gboolean	iffReadData(FILE * file, void *data, gsize len);
+extern gboolean	iffWriteData(FILE * file, const void *data, gsize len);
 
 #define iffReadDataAuto(f,d) iffReadData((f),&(d),sizeof(d))
 #define iffWriteDataAuto(f,d) iffWriteData((f),&(d),sizeof(d))
