@@ -44,107 +44,107 @@
 #define ID_SPRT	MAKE_ID('S','P','R','T')
 #define ID_copy	MAKE_ID('c','o','p','y')
 
-#define ham4bitToGray8(val4) ((((val4) << 4) * (gint16) 17) / 16)
-#define hamXbitToGray8(x,valx) (((((guint32)(valx)) << (8-(x))) * (gint16) ((1<<(x))+1)) / (1<<(x)))
+#define ham4bitToGray8(val4)	((((val4) << 4) * (gint16) 17) / 16)
+#define hamXbitToGray8(x,valx)	(((((guint32)(valx)) << (8 - (x))) * (gint16) ((1 << (x)) + 1)) / (1 << (x)))
 
-#define gray8ToHam4(g8) ((((guint16)(g8))*15)/255)
+#define gray8ToHam4(g8)		((((guint16)(g8)) * 15) / 255)
 
 /**** Types ****/
 
-typedef guint8 grayval;
-typedef guint8 palidx;          /* 8bit!! indexed files are built of it */
+typedef guint8	grayval;
+typedef guint8	palidx;          /* 8bit!! indexed files are built of it */
 
 /**** Misc ****/
 
 enum ColorLimit {
-  maxIndexedBits = 8,
-  maxIndexedColors = 1 << maxIndexedBits, maxGrayshades = maxIndexedColors
+	maxIndexedBits = 8,
+	maxIndexedColors = 1 << maxIndexedBits, maxGrayshades = maxIndexedColors
 };
 
 enum ByteWidth {
-  byteppGray = 1, byteppGrayA = byteppGray + byteppGray,
-  byteppRGB = byteppGray * 3, byteppRGBA = byteppRGB + byteppGray
+	byteppGray = 1, byteppGrayA = byteppGray + byteppGray,
+	byteppRGB = byteppGray * 3, byteppRGBA = byteppRGB + byteppGray
 };
 
 enum BitWidth {
-  bitperbyte = 8,
-  bitppGray = byteppGray * bitperbyte, bitppGrayA = bitppGray + bitppGray,
-  bitppRGB = byteppRGB * bitperbyte, bitppRGBA = bitppRGB + bitppGray,
-  bitppRGB4 = 12                /* mmh.. */
+	bitperbyte = 8,
+	bitppGray = byteppGray * bitperbyte, bitppGrayA = bitppGray + bitppGray,
+	bitppRGB = byteppRGB * bitperbyte, bitppRGBA = bitppRGB + bitppGray,
+	bitppRGB4 = 12                /* mmh.. */
 };
 
 #define BYTEPL(wid)	((((wid)+15)&~15)>>3)
 
 enum {
-  transparent = 0x00, opaque = 0xFF
+	transparent = 0x00, opaque = 0xFF
 };
 
 typedef struct {
-  guint16 w, h;
-  gint16 x, y;
-  guint8 nPlanes;
-  guint8 masking;
-  guint8 compression;
-  guint8 pad1;
-  guint16 transparentColor;
-  guint8 xAspect, yAspect;
-  gint16 pageWidth, pageHeight;
+	guint16 w, h;
+	gint16 x, y;
+	guint8 nPlanes;
+	guint8 masking;
+	guint8 compression;
+	guint8 pad1;
+	guint16 transparentColor;
+	guint8 xAspect, yAspect;
+	gint16 pageWidth, pageHeight;
 } ILBMbmhd;
 
 enum MaskingType {
-  mskNone, mskHasMask, mskHasTransparentColor, mskLasso
+	mskNone, mskHasMask, mskHasTransparentColor, mskLasso
 };
 
 enum CompressionType {
-  cmpNone, cmpByteRun1, cmpRGBN = 4, cmpRGB8 = 999  /* FIXME! */
+	cmpNone, cmpByteRun1, cmpRGBN = 4, cmpRGB8 = 999  /* FIXME! */
 };
 
 typedef struct {
-  guint32 viewModes;
+	guint32 viewModes;
 } ILBMcamg;
 
 enum ViewModeFlags {
-  lace = 0x00000004,
-  extraHalfbrite = 0x00000080,
-  ham = 0x00000800,
-  hiRes = 0x00008000
+	lace = 0x00000004,
+	extraHalfbrite = 0x00000080,
+	ham = 0x00000800,
+	hiRes = 0x00008000
 };
 
-#define CAMGMASK (0x00009EFDL)
+#define CAMGMASK	(0x00009EFDL)
 
 typedef struct {
-  guint16 dpiX;
-  guint16 dpiY;
+	guint16 dpiX;
+	guint16 dpiY;
 } ILBMdpi;
 
 typedef struct {
-  gint16 grabX;
-  gint16 grabY;
+	gint16 grabX;
+	gint16 grabY;
 } ILBMgrab;
 
 typedef struct {
-  guint8 depth;
-  guint8 pad;
-  guint16 planePick;
-  guint16 planeOnOff;
-  guint16 planeMask;
+	guint8 depth;
+	guint8 pad;
+	guint16 planePick;
+	guint16 planeOnOff;
+	guint16 planeMask;
 } ILBMdest;
 
 typedef struct {
-  guint16 preced;
+	guint16 preced;
 } ILBMsprt;
 
 
 /**** ILBMAttribs ****/
 
 typedef struct {
-  ILBMbmhd bmhd;
-  ILBMcamg camg;
-  guint16 cmapSet;
-  guchar cmap[maxIndexedColors * byteppRGB];
+	ILBMbmhd bmhd;
+	ILBMcamg camg;
+	guint16 cmapSet;
+	guchar cmap[maxIndexedColors * byteppRGB];
 } ILBMAttribs;
 
-gint32 loadImage(const char *filename);
-gint saveImage(const char *filename, gint32, gint32);
+extern gint32	loadImage(const gchar *filename);
+extern gint	saveImage(const gchar *filename, gint32 imageID, gint32 drawableID);
 
 #endif
