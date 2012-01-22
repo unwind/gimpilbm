@@ -688,12 +688,12 @@ static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *fi
 			g_warning ("More planes in file than allowed by DEST.");
 		if(numBitsSet (dest->planePick) != bmhd->nPlanes)
 			g_warning ("Number of planes doesn\'t match bits set in planePick.");
-		else
-		{
-			dest->depth = bmhd->nPlanes;
-			dest->planePick = dest->planeMask = (1L << bmhd->nPlanes) - 1;
-			/* hasDest = TRUE; */
-		}
+	}
+	else
+	{
+		dest->depth = bmhd->nPlanes;
+		dest->planePick = dest->planeMask = (1L << bmhd->nPlanes) - 1;
+		/* hasDest = TRUE; */
 	}
 	/* "Any higher order bits should be ignored" */
 	dest->planePick &= 0xFF;
