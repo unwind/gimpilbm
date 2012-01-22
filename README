@@ -5,6 +5,12 @@
  *  This is the IFF-ILBM Gimp plugin by Johannes Teveﬂen,
  *  eMail: <j.tevessen@gmx.net>
  *
+ *  Forked since Mr Teveﬂen seems to have stopped maintaining
+ *  it and the last found public build didn't work with current
+ *  (gimptool version 2.6.11) versions of GIMP as of early 2012.
+ *  First forked version was numbered 0.9.9.
+ *  Fork maintained by Emil Brink, <emil@obsession.se>.
+ *
  *  Short:
  *    IFF (InterchangeFileFormat) is a universal data
  *    exchange format developed by Electronic Arts.
@@ -93,17 +99,7 @@
  *    and png.c (GPL)1998 Michael Sweet and Daniel Skarda
  *    used as a template
  *
- *  This code went through GNU indent(1).
  *  Please report bugs and suggestions.
  *
- *
- *  Changes:
- *
- *  (See ./ChangeLog)
- *
+ *  Changes: see ./ChangeLog).
  */
-
-
-ciao,
-johnny
-<j.tevessen@gmx.net>

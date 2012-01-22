@@ -46,3 +46,5 @@
  *    0.9.2    o Changed realm from ILBM to IFF
  *    0.9.3    o Lots of undocumented changes, cleanups, and fixes
  *    0.9.4    o Tried to be able to compile without gimp-config available
+ *    0.9.9    o Unofficial fork by Emil Brink to work with current GIMP
+
