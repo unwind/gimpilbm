@@ -836,16 +836,17 @@ gint32 loadImage(const gchar *filename)
 	gint32		imageID = -1;
 	gboolean	succ = TRUE;
 	gchar		*name;
+	const gsize	name_size = strlen(filename) + 10;
 
 	if(1 || VERBOSE)
 		timerStart();
-	name = g_new(gchar, strlen(filename) + 10);
+	name = g_new(gchar, name_size);
 	if(!name)
 	{
 		fputs("Out of memory.\n", stderr);
 		return imageID;
 	}
-	g_snprintf(name, strlen(filename) + 10, "Loading %s:", filename);
+	g_snprintf(name, name_size, "Loading %s:", filename);
 	gimp_progress_init(name);
 	{
 		FILE	*file;
@@ -995,7 +996,7 @@ gint32 loadImage(const gchar *filename)
 											gchar	idstr[5];
 
 											cont[chead.len] = '\0';
-											idToString(chead.id, idstr);
+											idToString(chead.id, idstr, sizeof idstr);
 											printf("%s: %s\n", idstr, cont);
 										}
 									}             /* FIXME: error */
@@ -1144,6 +1145,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 	const guint8	*cmap = NULL;
 	gint		ncols, dtype;
 	gchar		*name;
+	const gsize	name_size = strlen(filename) + 10;
 
 	if(1 || VERBOSE) timerStart();
 	dtype = gimp_drawable_type(drawableID);
@@ -1164,13 +1166,13 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			return FALSE;           /* rc? */
 	}
 
-	name = g_new(gchar, strlen(filename) + 9);
+	name = g_new(gchar, name_size);
 	if(!name)
 	{
 		fputs("Out of memory.\n", stderr);
 		return rc;
 	}
-	sprintf(name, "Saving %s:", filename);
+	snprintf(name, name_size, "Saving %s:", filename);
 	gimp_progress_init(name);
 
 	/* save... */

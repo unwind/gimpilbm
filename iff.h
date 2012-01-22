@@ -35,7 +35,7 @@ typedef struct {
 	FILE* file;
 } IffHandle;
 
-extern void	idToString(IffID id, gchar *str);
+extern void	idToString(IffID id, gchar *str, gsize str_max);
 extern gboolean	readUlong(FILE *file, guint32 *dest);
 extern gboolean	writeUlong(FILE *file, guint32 val);
 extern gboolean	readUword(FILE *file, guint16 *dest);

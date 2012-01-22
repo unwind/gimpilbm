@@ -1,10 +1,10 @@
 #include "iff.h"
 
-void idToString(IffID id, gchar *str)
+void idToString(IffID id, gchar *str, gsize str_max)
 {
 	gint	i;
 
-	g_assert(str != NULL);
+	g_assert(str != NULL && str_max >= 5);
 	str += 4;
 	*str-- = '\0';
 	for(i = 4; i > 0; --i)
@@ -174,7 +174,7 @@ void iffDumpHeader(const IffChunkHeader *chd)
 	gchar	idstr[5];
 
 	g_assert(chd != NULL);
-	idToString(chd->id, idstr);
+	idToString(chd->id, idstr, sizeof idstr);
 	printf("Header %s of %lu bytes.\n", idstr, (unsigned long) chd->len);
 }
 
