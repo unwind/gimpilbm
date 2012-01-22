@@ -36,21 +36,21 @@ typedef struct {
 } IffHandle;
 
 extern void	idToString(IffID id, gchar *str);
-extern gboolean	readUlong(FILE * file, guint32 * dest);
-extern gboolean	writeUlong(FILE * file, guint32 val);
-extern gboolean	readUword(FILE * file, guint16 * dest);
-extern gboolean	writeUword(FILE * file, guint16 val);
-extern gboolean	readUchar(FILE * file, guint8 * dest);
-extern gboolean	writeUchar(FILE * file, guint8 val);
-extern gboolean	writeLongAt(FILE * file, gint32 val, gint32 fileOffset);
-extern gboolean	iffReadHeader(FILE * file, IffChunkHeader * chd);
-extern gboolean	iffWriteHeader(FILE * file, const IffChunkHeader * chd);
-extern void	iffInitHeader(IffChunkHeader * chd, IffID id, guint32 len);
-extern void	iffDumpHeader(const IffChunkHeader * chd);
-extern gboolean	iffReadData(FILE * file, void *data, gsize len);
-extern gboolean	iffWriteData(FILE * file, const void *data, gsize len);
+extern gboolean	readUlong(FILE *file, guint32 *dest);
+extern gboolean	writeUlong(FILE *file, guint32 val);
+extern gboolean	readUword(FILE *file, guint16 *dest);
+extern gboolean	writeUword(FILE *file, guint16 val);
+extern gboolean	readUchar(FILE *file, guint8 *dest);
+extern gboolean	writeUchar(FILE *file, guint8 val);
+extern gboolean	writeLongAt(FILE *file, gint32 val, gint32 fileOffset);
+extern gboolean	iffReadHeader(FILE *file, IffChunkHeader *chd);
+extern gboolean	iffWriteHeader(FILE *file, const IffChunkHeader *chd);
+extern void	iffInitHeader(IffChunkHeader *chd, IffID id, guint32 len);
+extern void	iffDumpHeader(const IffChunkHeader *chd);
+extern gboolean	iffReadData(FILE *file, void *data, gsize len);
+extern gboolean	iffWriteData(FILE *file, const void *data, gsize len);
 
-#define iffReadDataAuto(f,d) iffReadData((f),&(d),sizeof(d))
-#define iffWriteDataAuto(f,d) iffWriteData((f),&(d),sizeof(d))
+#define iffReadDataAuto(f,d) iffReadData((f), &(d), sizeof d)
+#define iffWriteDataAuto(f,d) iffWriteData((f), &(d), sizeof d)
 
 #endif
