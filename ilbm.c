@@ -808,28 +808,27 @@ static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *fi
 	return succ;
 }
 
-#include <sys/times.h>
-static struct tms tms;
+static GTimer	*the_timer = NULL;
 
 void timerStart(void)
 {
 	fputs("Starting timer.\n", stderr);
-	(void) times(&tms);
+	if(the_timer == NULL)
+		the_timer = g_timer_new();
+	if(the_timer != NULL)
+		g_timer_start(the_timer);
 }
 
-void timerStop (void)
+void timerStop(void)
 {
-	struct tms tms2;
+	gulong	microseconds;
 
-	(void) times(&tms2);
-	fputs("Timer stopped.\n", stderr);
-	fprintf(stderr,
-		"User   : %12ld %12ld\n"
-		"System : %12ld %12ld\n",
-		tms2.tms_utime - tms.tms_utime,
-		tms2.tms_cutime - tms.tms_cutime,
-		tms2.tms_stime - tms.tms_stime,
-		tms2.tms_cstime - tms.tms_cstime);
+	if(the_timer == NULL)
+		return;
+	g_timer_stop(the_timer);
+	g_timer_elapsed(the_timer, &microseconds);
+
+	printf("Timer stopped after %.1f ms\n", 1e-3 * microseconds);
 }
 
 gint32 loadImage(const gchar *filename)
