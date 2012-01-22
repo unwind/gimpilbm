@@ -419,8 +419,7 @@ static gboolean writePlaneRow(FILE *file, const guint8 *bitSrc, gint bytesInPlan
 	{
 	case cmpByteRun1:
 		{
-			gint32 written;
-			written = packRow(packedBuf, bitSrc, bytesInPlaneRow);
+			const gint32	written = packRow(packedBuf, bitSrc, bytesInPlaneRow);
 			if(written > 0)
 				success = iffWriteData(file, packedBuf, written);
 			else
@@ -456,7 +455,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 	guint8	*bitlinebuf = g_new(guint8, BYTEPL(width));
 
 	/* FIXME: check both */
-	if((ID_RGB8 == ftype) || (ID_RGBN == ftype))
+	if(ftype == ID_RGB8 || ftype == ID_RGBN)
 	{
 		/*const gboolean	success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);*/
 		/* above expression unused ATM */
@@ -475,7 +474,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 			{
 				gint bitnr;
 				memset(destline, 0, width);
-				for (bitnr = 0; bitnr < bitppGray; ++bitnr)
+				for(bitnr = 0; bitnr < bitppGray; ++bitnr)
 				{
 					readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
 					unpackBits(bitlinebuf, destline, bitnr, width);
@@ -585,9 +584,9 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 					break;
 				default:
 					{
-						gint i;
+						gint	i;
 
-						for (i = 0; i < width; ++i)
+						for(i = 0; i < width; ++i)
 							dst[byteppGray + i * byteppGrayA] = opaque;
 					}
 					break;
@@ -685,22 +684,21 @@ static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *fi
 		/* mmh, should we take mask in account here? */
 		/* now we assume a mask just to be the "highest" bit */
 		if(bmhd->nPlanes > dest->depth)
-			g_warning ("More planes in file than allowed by DEST.");
-		if(numBitsSet (dest->planePick) != bmhd->nPlanes)
-			g_warning ("Number of planes doesn't match bits set in planePick.");
+			g_warning("More planes in file than allowed by DEST.");
+		if(numBitsSet(dest->planePick) != bmhd->nPlanes)
+			g_warning("Number of planes doesn't match bits set in planePick.");
 	}
 	else
 	{
 		dest->depth = bmhd->nPlanes;
 		dest->planePick = dest->planeMask = (1L << bmhd->nPlanes) - 1;
-		/* hasDest = TRUE; */
 	}
 	/* "Any higher order bits should be ignored" */
 	dest->planePick &= 0xFF;
 	dest->planeOnOff &= 0xFF;
 	dest->planeMask &= 0xFF;
 
-	/*  Some old (pre-AGA) programs saved HAM6 pictures
+	/* Some old (pre-AGA) programs saved HAM6 pictures
 	*  without setting the right (or any) CAMG flags.
 	*  Let's guess then.
 	*/
