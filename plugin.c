@@ -112,7 +112,7 @@ static void runPlugin(const gchar *name, gint nparams, const GimpParam * param, 
 	GimpPDBStatusType	status = GIMP_PDB_SUCCESS;
 
 	if(VERBOSE)
-		fputs("gimpilbm" "VERSION" "("__DATE__" "__TIME__") running.\n", stdout);
+		fputs("gimpilbm " VERSION " ("__DATE__" "__TIME__") running.\n", stdout);
 
 	runMode = (GimpRunMode) param[0].data.d_int32;
 
