@@ -273,7 +273,7 @@ static gboolean unpackRGBN8(FILE *file, grayval *rgbbuf, gint32 pixelNeeded, Iff
 
 static void unpackBits(const guint8 *bitlinebuf, guint8 *destline, gint bitnr, gint width)
 {
-	guint8	setmask = 1 << bitnr;
+	const guint8	setmask = 1 << bitnr;
 
 	g_assert(bitlinebuf != NULL);
 	g_assert(destline != NULL);
@@ -295,37 +295,26 @@ static void setBits(guint8 *destline, gint bitnr, gint width)
 {
 	const guint8	setmask = 1 << bitnr;
 
-	width <<= 3;	/* is now number of pixels */
-	while(width > 0)
-	{
+	for(width <<= 3; width > 0; destline++, width--)
 		*destline |= setmask;
-		++destline;
-		--width;
-	}
 }
 
 static void clrBits(guint8 *destline, gint bitnr, gint width)
 {
 	const guint8	clrmask = ~(1 << bitnr);
 
-	width <<= 3;	/* is now number of pixels */
-	while(width > 0)
-	{
+	for(width <<= 3; width > 0; destline++, width--)
 		*destline &= clrmask;
-		++destline;
-		--width;
-	}
 }
 
 static gint numBitsSet(guint32 val)
 {
 	gint	bitsSet = 0;
 
-	while(val != 0)
+	for(bitsSet = 0; val != 0; val >>= 1)
 	{
 		if(val & 1)
 			++bitsSet;
-		val >>= 1;
 	}
 	return bitsSet;
 }
