@@ -1045,9 +1045,8 @@ gint32 loadImage(const gchar *filename)
 
 static void extractBits(guint8 *dest, const guint8 *src, gint bitnr, gint32 width, gint skipAmount)
 {
-  guint8	mask = 1 << bitnr;
-  guint8	ch = 0;
-  guint8	actbit = 1 << 7;
+	const guint8	mask = 1 << bitnr;
+	guint8		ch = 0, actbit = 1 << 7;
 
 	while(width--)
 	{
@@ -1139,9 +1138,9 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 	gint		rc = FALSE;
 	gboolean	succ = TRUE;
 	guint16		alpha = 0;
-	guint16		compress = ilbmvals.compress ? cmpByteRun1 : cmpNone;
-	guint16		saveham = ilbmvals.save_ham;
-	guint16		chunky = ilbmvals.save_chunky;
+	const guint16	compress = ilbmvals.compress ? cmpByteRun1 : cmpNone;
+	const guint16	saveham = ilbmvals.save_ham;
+	const guint16	chunky = ilbmvals.save_chunky;
 	const guint8	*cmap = NULL;
 	gint		ncols, dtype;
 	gchar		*name;
@@ -1172,7 +1171,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 		fputs("Out of memory.\n", stderr);
 		return rc;
 	}
-	snprintf(name, name_size, "Saving %s:", filename);
+	g_snprintf(name, name_size, "Saving %s:", filename);
 	gimp_progress_init(name);
 
 	/* save... */
