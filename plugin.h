@@ -11,12 +11,7 @@ typedef struct {
 	gint32	set_backgnd;
 } ILBMSaveVals;
 
-typedef struct {
-	gint	run;
-} ILBMSaveInterface;
-
 extern ILBMSaveVals		ilbmvals;
-extern ILBMSaveInterface	ilbmint;
 
 extern const gchar *saveFuncID;
 

@@ -31,11 +31,6 @@ ILBMSaveVals ilbmvals =
 	0
 };
 
-ILBMSaveInterface ilbmint =
-{
-	FALSE		/* run */
-};
-
 /**** standard settings ****/
 
 const gchar *loadFuncID = "file_ilbm_load";
