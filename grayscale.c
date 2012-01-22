@@ -18,12 +18,10 @@ void dumpGrayTrans(const palidx *t)
 	gint	i;
 
 	g_assert(NULL != t);
-	printf ("grayTrans colortable:\n");
+	printf("grayTrans colortable:\n");
 	/* Crashes if maxGrayshades % 8 > 0 */
-	for(i = 0; i < maxGrayshades; i += 8)
-		printf("  %02x %02x %02x %02x  %02x %02x %02x %02x\n",
-			t[i], t[i + 1], t[i + 2], t[i + 3],
-			t[i + 4], t[i + 5], t[i + 6], t[i + 7]);
+	for(i = 0; i < maxGrayshades; i += 8, t += 8)
+		printf("  %02x %02x %02x %02x  %02x %02x %02x %02x\n", t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
 }
 
 guint8 * allocGrayscale(void)
