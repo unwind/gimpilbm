@@ -687,7 +687,7 @@ static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *fi
 		if(bmhd->nPlanes > dest->depth)
 			g_warning ("More planes in file than allowed by DEST.");
 		if(numBitsSet (dest->planePick) != bmhd->nPlanes)
-			g_warning ("Number of planes doesn\'t match bits set in planePick.");
+			g_warning ("Number of planes doesn't match bits set in planePick.");
 	}
 	else
 	{
