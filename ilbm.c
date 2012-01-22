@@ -458,7 +458,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 	/* FIXME: check both */
 	if((ID_RGB8 == ftype) || (ID_RGBN == ftype))
 	{
-		gboolean success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);
+		/*const gboolean	success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);*/
 		/* above expression unused ATM */
 		dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
 		/* This way alpha doesn't work with RGB8 */
@@ -585,15 +585,16 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 					break;
 				default:
 					{
-					gint i;
-					for (i = 0; i < width; ++i)
-					dst[byteppGray + i * byteppGrayA] = opaque;
+						gint i;
+
+						for (i = 0; i < width; ++i)
+							dst[byteppGray + i * byteppGrayA] = opaque;
 					}
 					break;
 				}
 				dst += width;
 			}
-			if(!transGray)
+			if(!grayTrans)
 			{
 				/* Check indices for range */
 				checkIdxRanges (dst, width, ncols);
@@ -934,7 +935,7 @@ gint32 loadImage(const gchar *filename)
 								ncols = chead.len / byteppRGB;
 								if(VERBOSE)
 									printf("%d colors in CMAP.\n", ncols);
-								cmap = (u_char *) g_new(guint8, ncols * byteppRGB + 1 /*pad */ );
+								cmap = (guchar *) g_new(guint8, ncols * byteppRGB + 1 /*pad */ );
 								succ = succ && iffReadData(file, cmap, hunksize);  /* FIXME: +1 unneeded? */
 								break;
 							case ID_CAMG:
@@ -1141,7 +1142,6 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 	guint16		compress = ilbmvals.compress ? cmpByteRun1 : cmpNone;
 	guint16		saveham = ilbmvals.save_ham;
 	guint16		chunky = ilbmvals.save_chunky;
-	gboolean	outGrayscale = FALSE;
 	const guint8	*cmap = NULL;
 	gint		ncols, dtype;
 	gchar		*name;
@@ -1150,13 +1150,9 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 	dtype = gimp_drawable_type(drawableID);
 	switch(dtype)
 	{
-		case GIMP_GRAYA_IMAGE:
-			outGrayscale = TRUE;
 		case GIMP_RGBA_IMAGE:
 			alpha = 1;
 			break;
-		case GIMP_GRAY_IMAGE:
-			outGrayscale = TRUE;
 		case GIMP_RGB_IMAGE:
 			break;
 		case GIMP_INDEXEDA_IMAGE:
@@ -1165,6 +1161,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			cmap = gimp_image_get_cmap(imageID, &ncols);
 			break;
 		default:
+			fprintf(stderr, "Unsupported drawable type %d\n", dtype);
 			return FALSE;           /* rc? */
 	}
 
@@ -1188,13 +1185,8 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 		/* output HAM, output EHB */
 		gint		outHAM = 0;
 		const guint8	*outCmap = 0;  /* cmap to write, if any */
-		gboolean	outIndexed = 0;    /* write indexed image, or RGBx */
 		/*gboolean outGrayscale = 0; *//* Output should be grayscale */
 		gint		outNcols = 0;          /* number of colors in cmap */
-		gint		outNplanes = 0;        /* number of planes to write */
-		gint		outColorbits = 0;      /* bits per color */
-		gint		outAlphabits = 0;      /* if alpha, how many bits */
-		IffID		ftype = ID_ILBM;      /* file format to use */
 
 		/* IMPORTANT: cmap can only be != 0 if the image is neither RGB nor GRAY(!) */
 		if(NULL != cmap)
@@ -1211,14 +1203,6 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			{  /* Doesn't have to be that rigid */
 				outHAM = 6;
 			}
-		}
-		if(alpha)
-		{
-			outAlphabits = 1;
-		}
-		else
-		{
-			outAlphabits = 0;
 		}
 
 		if(VERBOSE)
