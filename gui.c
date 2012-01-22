@@ -72,8 +72,6 @@ gint saveDialog(void)
 				 GTK_STOCK_OK, GTK_RESPONSE_OK,
 				 NULL);
 
-/*	g_signal_connect(G_OBJECT(dlg), "destroy", G_CALLBACK(gtk_main_quit), NULL);*/
-
 	/**** "dialogue" part ****/
 
 	/*  parameter settings  */
@@ -96,24 +94,24 @@ gint saveDialog(void)
 	gtk_scale_set_value_pos(GTK_SCALE(scale), GTK_POS_RIGHT);
 	gtk_scale_set_digits(GTK_SCALE(scale), 2);
 	gtk_range_set_update_policy(GTK_RANGE(scale), GTK_UPDATE_DELAYED);
-	gtk_signal_connect(GTK_OBJECT(scale_data), "value_changed", (GtkSignalFunc) saveScaleUpdate, &ilbmvals.threshold);
+	g_signal_connect(G_OBJECT(scale_data), "value_changed", G_CALLBACK(saveScaleUpdate), &ilbmvals.threshold);
 
 	/**** Compress ****/
 	toggle = gtk_check_button_new_with_label("Compress");
 	gtk_table_attach(GTK_TABLE(table), toggle, 0, 2, 2, 3, GTK_FILL, 0, 0, 0);
-	gtk_signal_connect(GTK_OBJECT(toggle), "toggled", (GtkSignalFunc) saveToggleUpdate, &ilbmvals.compress);
+	g_signal_connect(G_OBJECT(toggle), "toggled", G_CALLBACK(saveToggleUpdate), &ilbmvals.compress);
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.compress);
 
 	/**** Save as HAM ****/
 	toggle = gtk_check_button_new_with_label("Save as HAM");
 	gtk_table_attach(GTK_TABLE(table), toggle, 0, 2, 3, 4, GTK_FILL, 0, 0, 0);
-	gtk_signal_connect(GTK_OBJECT(toggle), "toggled", (GtkSignalFunc) saveToggleUpdate, &ilbmvals.save_ham);
+	g_signal_connect(G_OBJECT(toggle), "toggled", G_CALLBACK(saveToggleUpdate), &ilbmvals.save_ham);
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.save_ham);
 
 	/**** Save chunky ****/
 	toggle = gtk_check_button_new_with_label("Save chunky (RGB8)");
 	gtk_table_attach(GTK_TABLE(table), toggle, 0, 2, 4, 5, GTK_FILL, 0, 0, 0);
-	gtk_signal_connect(GTK_OBJECT(toggle), "toggled", (GtkSignalFunc) saveToggleUpdate, &ilbmvals.save_chunky);
+	g_signal_connect(G_OBJECT(toggle), "toggled", G_CALLBACK(saveToggleUpdate), &ilbmvals.save_chunky);
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.save_chunky);
 
 #if 0
