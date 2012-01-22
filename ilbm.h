@@ -8,10 +8,10 @@
 #include "iff.h"
 
 #ifndef VERSION
-#  define VERSION "0.9.2"
+#  define VERSION "0.9.9"
 #endif
 
-#define PLUG_IN_VERSION VERSION" - 2001-08-09"
+#define PLUG_IN_VERSION VERSION" - 2012-01-22"
 
 #ifndef DEBUGLEVEL
 #  define DEBUGLEVEL	2
@@ -58,7 +58,8 @@ typedef guint8	palidx;          /* 8bit!! indexed files are built of it */
 
 enum ColorLimit {
 	maxIndexedBits = 8,
-	maxIndexedColors = 1 << maxIndexedBits, maxGrayshades = maxIndexedColors
+	maxIndexedColors = 1 << maxIndexedBits,
+	maxGrayshades = maxIndexedColors
 };
 
 enum ByteWidth {
@@ -80,15 +81,15 @@ enum {
 };
 
 typedef struct {
-	guint16 w, h;
-	gint16 x, y;
-	guint8 nPlanes;
-	guint8 masking;
-	guint8 compression;
-	guint8 pad1;
-	guint16 transparentColor;
-	guint8 xAspect, yAspect;
-	gint16 pageWidth, pageHeight;
+	guint16	w, h;
+	gint16	x, y;
+	guint8	nPlanes;
+	guint8	masking;
+	guint8	compression;
+	guint8	pad1;
+	guint16	transparentColor;
+	guint8	xAspect, yAspect;
+	gint16	pageWidth, pageHeight;
 } ILBMbmhd;
 
 enum MaskingType {
@@ -100,7 +101,7 @@ enum CompressionType {
 };
 
 typedef struct {
-	guint32 viewModes;
+	guint32	viewModes;
 } ILBMcamg;
 
 enum ViewModeFlags {
@@ -113,35 +114,35 @@ enum ViewModeFlags {
 #define CAMGMASK	(0x00009EFDL)
 
 typedef struct {
-	guint16 dpiX;
-	guint16 dpiY;
+	guint16	dpiX;
+	guint16	dpiY;
 } ILBMdpi;
 
 typedef struct {
-	gint16 grabX;
-	gint16 grabY;
+	gint16	grabX;
+	gint16	grabY;
 } ILBMgrab;
 
 typedef struct {
-	guint8 depth;
-	guint8 pad;
-	guint16 planePick;
-	guint16 planeOnOff;
-	guint16 planeMask;
+	guint8	depth;
+	guint8	pad;
+	guint16	planePick;
+	guint16	planeOnOff;
+	guint16	planeMask;
 } ILBMdest;
 
 typedef struct {
-	guint16 preced;
+	guint16	preced;
 } ILBMsprt;
 
 
 /**** ILBMAttribs ****/
 
 typedef struct {
-	ILBMbmhd bmhd;
-	ILBMcamg camg;
-	guint16 cmapSet;
-	guchar cmap[maxIndexedColors * byteppRGB];
+	ILBMbmhd	bmhd;
+	ILBMcamg	camg;
+	guint16		cmapSet;
+	guchar		cmap[maxIndexedColors * byteppRGB];
 } ILBMAttribs;
 
 extern gint32	loadImage(const gchar *filename);
