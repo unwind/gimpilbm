@@ -50,7 +50,4 @@ extern void	iffDumpHeader(const IffChunkHeader *chd);
 extern gboolean	iffReadData(FILE *file, void *data, gsize len);
 extern gboolean	iffWriteData(FILE *file, const void *data, gsize len);
 
-#define iffReadDataAuto(f,d) iffReadData((f), &(d), sizeof d)
-#define iffWriteDataAuto(f,d) iffWriteData((f), &(d), sizeof d)
-
 #endif

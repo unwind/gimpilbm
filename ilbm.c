@@ -235,12 +235,13 @@ static gboolean unpackRGBN8(FILE *file, grayval *rgbbuf, gint32 pixelNeeded, Iff
 		if(!repeat)
 		{
 			guint8	cbyte;
+
 			if(!(success = readUchar(file, &cbyte)))
 				break;
 			else
 			{
 				if(cbyte)
-				  repeat = cbyte;
+					repeat = cbyte;
 				else
 				{
 					guint16	cword;
@@ -910,7 +911,7 @@ gint32 loadImage(const gchar *filename)
 						switch(chead.id)
 						{
 							case ID_BMHD:
-								succ = succ && iffReadDataAuto(file, bmhd);
+								succ = succ && iffReadData(file, &bmhd, sizeof bmhd);
 								if(succ)
 								{
 									valBMHD(&bmhd);
@@ -922,37 +923,33 @@ gint32 loadImage(const gchar *filename)
 								ncols = chead.len / byteppRGB;
 								if(VERBOSE)
 									printf("%d colors in CMAP.\n", ncols);
-								cmap = (guchar *) g_new(guint8, ncols * byteppRGB + 1 /*pad */ );
+								cmap = g_new(guint8, ncols * byteppRGB + 1 /*pad */ );
 								succ = succ && iffReadData(file, cmap, hunksize);  /* FIXME: +1 unneeded? */
 								break;
 							case ID_CAMG:
-								succ = succ && iffReadDataAuto(file, camg);
+								succ = succ && iffReadData(file, &camg, sizeof camg);
 								if(succ)
 								{
 									valCAMG(&camg);
 									if(VERBOSE)
-									{
 										dumpCAMG(&camg);
-									}
 								}               /* FIXME: error */
 								break;
 							case ID_DPI_:
 								{
 									ILBMdpi	dpi;
 
-									succ = succ && iffReadDataAuto(file, dpi);
+									succ = succ && iffReadData(file, &dpi, sizeof dpi);
 									if(succ)
 									{
 										valDPI(&dpi);
 										if(VERBOSE)
-										{
 											dumpDPI(&dpi);
-										}
 									}             /* FIXME: error */
 								}
 								break;
 							case ID_DEST:
-								succ = succ && iffReadDataAuto(file, dest);
+								succ = succ && iffReadData(file, &dest, sizeof dest);
 								if(succ)
 								{
 									valDEST(&dest);
@@ -1235,7 +1232,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 				bmhd.compression = compress;
 			if(outHAM)
 				bmhd.nPlanes = outHAM;
-			succ = succ && iffWriteDataAuto(file, bmhd);
+			succ = succ && iffWriteData(file, &bmhd, sizeof bmhd);
 			totsize += 8 + sizeof(ILBMbmhd);
 
 			/**** CMAP ****/
