@@ -463,7 +463,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 		else		/* This way alpha doesn't work with RGB8 */
 			dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
 	}
-	else if(!cmap)
+	else if(cmap == NULL)
 	{
 		/* RGB(A) */
 		/* if (VERBOSE) fputs("Creating RGB(A)\n", stdout);*/
@@ -473,7 +473,8 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 
 			for(rgb = 0; rgb < byteppRGB; ++rgb)
 			{
-				gint bitnr;
+				gint	bitnr;
+
 				memset(destline, 0, width);
 				for(bitnr = 0; bitnr < bitppGray; ++bitnr)
 				{
@@ -562,9 +563,10 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 				{
 				case mskHasMask:
 					/* Only if image is plane- and per-line-based */
-					if (ID_ILBM == ftype) {
-					readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
-					bitExpandStep(dst + byteppGray, bitlinebuf, width, byteppGrayA);
+					if(ID_ILBM == ftype)
+					{
+						readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
+						bitExpandStep(dst + byteppGray, bitlinebuf, width, byteppGrayA);
 					}
 					break;
 				case mskHasTransparentColor:
