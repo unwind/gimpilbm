@@ -661,11 +661,27 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 
 static void setCmap(gint32 imageID, const guint8 *cmap, gint ncols)
 {
-	g_assert (NULL != cmap);
-	g_assert (0 != ncols);
+	guint8	colormap[3 * 256];
+	gint	i, offset;
+
+	g_assert(NULL != cmap);
+	g_assert(0 != ncols);
+	g_assert(3 * ncols <= (sizeof colormap / sizeof *colormap));
 	if(VERBOSE)
 		printf("Setting cmap (%d colors)...\n", ncols);
-	gimp_image_set_cmap(imageID, (guchar *) cmap, ncols);
+	/* Make sure the colormap GIMP sees is fully saturated, map Amiga's white (0xfff) to 0xffffff, not 0xf0f0f0. */
+	for(i = offset = 0; i < ncols; i++, offset += 3)
+	{
+		const guint8	red = cmap[offset + 0], green = cmap[offset + 1], blue = cmap[offset + 2];
+
+		colormap[offset + 0] = red   | (red >> 4);
+		colormap[offset + 1] = green | (green >> 4);
+		colormap[offset + 2] = blue  | (blue >> 4);
+/*		printf("Built color 0x%02x%02x%02x from red=0x%02x, green=0x%02x, blue=0x%02x\n",
+			colormap[offset + 0], colormap[offset + 1], colormap[offset + 2],
+			red, green, blue);
+*/	}
+	gimp_image_set_colormap(imageID, colormap, ncols);
 }
 
 
