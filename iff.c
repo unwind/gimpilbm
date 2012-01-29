@@ -146,7 +146,7 @@ gboolean iffReadHeader(FILE *file, IffChunkHeader *chd)
 		}
 	}
 	else
-		g_warning ("Error fseek()ing.");
+		g_warning("Error fseek()ing.");
 	return success;
 }
 

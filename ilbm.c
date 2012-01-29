@@ -193,7 +193,7 @@ static gboolean packRGBN8(FILE *file, const grayval *rgbbuf, gint32 pixelNeeded,
 	if(repeat)
 	{
 		actclong |= repeat;
-		if (ftype == ID_RGB8)
+		if(ftype == ID_RGB8)
 			success = writeUlong(file, actclong);
 		else
 			success = writeUword(file, actclong);
@@ -415,7 +415,7 @@ static gboolean writePlaneRow(FILE *file, const guint8 *bitSrc, gint bytesInPlan
 {
 	gboolean success;
 
-	switch (compression)
+	switch(compression)
 	{
 	case cmpByteRun1:
 		{
@@ -466,7 +466,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 	else if(cmap == NULL)
 	{
 		/* RGB(A) */
-		/* if (VERBOSE) fputs("Creating RGB(A)\n", stdout);*/
+		/* if(VERBOSE) fputs("Creating RGB(A)\n", stdout);*/
 		while(hereheight--)
 		{
 			gint	rgb, i;
@@ -599,7 +599,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 			if(!grayTrans)
 			{
 				/* Check indices for range */
-				checkIdxRanges (dst, width, ncols);
+				checkIdxRanges(dst, width, ncols);
 			}
 			dst += width;
 		}
@@ -612,7 +612,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 			gint	bitnr;
 
 			memset(destline, 0, width);
-			for (bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr)
+			for(bitnr = 0; bitnr < bmhd->nPlanes; ++bitnr)
 			{
 				readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
 				unpackBits(bitlinebuf, destline, bitnr, width);
@@ -620,7 +620,7 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 			deHam(dst, destline, width, bmhd->nPlanes, cmap, bmhd->masking != mskNone);
 			if(bmhd->masking != mskNone)
 			{
-				switch (bmhd->masking)
+				switch(bmhd->masking)
 				{
 				case mskHasMask:
 					readPlaneRow(file, bitlinebuf, BYTEPL(width), bmhd->compression);
@@ -764,14 +764,14 @@ static gboolean loadBODY(gboolean succ, FILE *file, IffID ftype, const gchar *fi
 	if(VERBOSE)
 		printf("isGray:%d\n", (int) isGray);
 
-	/* if (DEBUG && grayTrans) dumpGrayTrans (grayTrans); */
+	/* if(DEBUG && grayTrans) dumpGrayTrans (grayTrans); */
 
 	exportRGB = !*cmap || (camg->viewModes & ham);
 	if(!exportRGB && !*cmap)
 		fprintf(stderr, "Colormap (CMAP) missing!\n");
 
 	if(camg->viewModes & extraHalfbrite)
-		*cmap = reallocEhbCmap (*cmap, &ncols);
+		*cmap = reallocEhbCmap(*cmap, &ncols);
 
 	/* !! Caution (FIXME): Every msk.. needs alpha, but we don't support everyone yet !! */
 	*imageID = gimp_image_new(bmhd->w, bmhd->h, (exportRGB ? GIMP_RGB : (isGray ? GIMP_GRAY : GIMP_INDEXED)));
@@ -1047,7 +1047,7 @@ gint32 loadImage(const gchar *filename)
 								running = FALSE;  /* Stop parsing IFF */
 								break;
 							default:
-								/*if (VERBOSE) printf ("Unknown hunk; skipping %d byte.\n", hunksize);*/
+								/*if(VERBOSE) printf("Unknown hunk; skipping %d byte.\n", hunksize);*/
 								fseek(file, hunksize, SEEK_CUR);
 							break;
 						}
