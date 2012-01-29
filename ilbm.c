@@ -666,7 +666,7 @@ static void setCmap(gint32 imageID, const guint8 *cmap, gint ncols)
 
 	g_assert(NULL != cmap);
 	g_assert(0 != ncols);
-	g_assert(3 * ncols <= (sizeof colormap / sizeof *colormap));
+	g_assert(3u * ncols <= (sizeof colormap / sizeof *colormap));
 	if(VERBOSE)
 		printf("Setting cmap (%d colors)...\n", ncols);
 	/* Make sure the colormap GIMP sees is fully saturated, map Amiga's white (0xfff) to 0xffffff, not 0xf0f0f0. */
