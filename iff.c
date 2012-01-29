@@ -43,7 +43,7 @@ gboolean writeUlong(FILE *file, guint32 val)
 	return success;
 }
 
-gboolean readUword(FILE *file, guint16 * dest)
+gboolean readUword(FILE *file, guint16 *dest)
 {
 	guint16		val;
 	gboolean	success;
@@ -72,7 +72,7 @@ gboolean writeUword(FILE *file, guint16 val)
   return success;
 }
 
-gboolean readUchar(FILE *file, guint8 * dest)
+gboolean readUchar(FILE *file, guint8 *dest)
 {
 	int		erg;
 	gboolean	success;
