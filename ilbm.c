@@ -19,15 +19,23 @@
 
 /**** BMHD BitMap HeaDer ****/
 
-static void valBMHD(ILBMbmhd *bmhd)
+static gboolean readILBM(FILE *file, ILBMbmhd *bmhd)
 {
-	bmhd->w = ntohs(bmhd->w);
-	bmhd->h = ntohs(bmhd->h);
-	bmhd->x = ntohs(bmhd->x);
-	bmhd->y = ntohs(bmhd->y);
-	bmhd->transparentColor = ntohs(bmhd->transparentColor);
-	bmhd->pageWidth = ntohs(bmhd->pageWidth);
-	bmhd->pageHeight = ntohs(bmhd->pageHeight);
+	g_assert(bmhd != NULL);
+
+	return readUword(file, &bmhd->w) &&
+		readUword(file, &bmhd->h) &&
+		readUword(file, (guint16 *) &bmhd->x) &&
+		readUword(file, (guint16 *) &bmhd->y) &&
+		readUchar(file, &bmhd->nPlanes) &&
+		readUchar(file, &bmhd->masking) &&
+		readUchar(file, &bmhd->compression) &&
+		readUchar(file, &bmhd->pad1) &&
+		readUword(file, &bmhd->transparentColor) &&
+		readUchar(file, &bmhd->xAspect) &&
+		readUchar(file, &bmhd->yAspect) &&
+		readUword(file, (guint16 *) &bmhd->pageWidth) &&
+		readUword(file, (guint16 *) &bmhd->pageHeight);
 }
 
 static void genBMHD(ILBMbmhd *bmhd, guint16 width, guint16 height, guint8 depth)
@@ -51,9 +59,10 @@ static void dumpBMHD(const ILBMbmhd *bmhd)
 
 /**** CAMG  Commodore AMiGa ****/
 
-static void valCAMG(ILBMcamg *camg)
+static gboolean readCAMG(FILE *file, ILBMcamg *camg)
 {
-	camg->viewModes = ntohl(camg->viewModes) & CAMGMASK;
+	g_assert(camg != NULL);
+	return readUlong(file, &camg->viewModes);
 }
 
 static void dumpCAMG(const ILBMcamg *camg)
@@ -72,10 +81,10 @@ static void dumpCAMG(const ILBMcamg *camg)
 
 /**** DPI  Dots Per Inch ****/
 
-static void valDPI(ILBMdpi *dpi)
+static gboolean readDPI(FILE *file, ILBMdpi *dpi)
 {
-	dpi->dpiX = ntohs(dpi->dpiX);
-	dpi->dpiY = ntohs(dpi->dpiY);
+	g_assert(dpi != NULL);
+	return readUword(file, &dpi->dpiX) && readUword(file, &dpi->dpiY);
 }
 
 static void dumpDPI(const ILBMdpi *dpi)
@@ -85,10 +94,10 @@ static void dumpDPI(const ILBMdpi *dpi)
 
 /**** GRAB  Image hotspot ****/
 
-static void valGRAB(ILBMgrab *grab)
+static gboolean readGRAB(FILE *file, ILBMgrab *grab)
 {
-	grab->grabX = ntohs(grab->grabX);
-	grab->grabY = ntohs(grab->grabY);
+	g_assert(file != NULL && grab != NULL);
+	return readUword(file, (guint16 *) &grab->grabX) && readUword(file, (guint16 *) &grab->grabY);
 }
 
 static void dumpGRAB(const ILBMgrab *grab)
@@ -98,11 +107,12 @@ static void dumpGRAB(const ILBMgrab *grab)
 
 /**** DEST  DestMerge masks ****/
 
-static void valDEST(ILBMdest *dest)
+static gboolean readDEST(FILE *file, ILBMdest *dest)
 {
-	dest->planePick = ntohs(dest->planePick);
-	dest->planeOnOff = ntohs(dest->planeOnOff);
-	dest->planeMask = ntohs(dest->planeMask);
+	g_assert(file != NULL && dest != NULL);
+	return readUchar(file, &dest->depth) && readUchar(file, &dest->pad) &&
+		readUword(file, &dest->planePick) && readUword(file, &dest->planeOnOff) &&
+		readUword(file, &dest->planeMask);
 }
 
 static void dumpDEST(ILBMdest *dest)
@@ -115,9 +125,10 @@ static void dumpDEST(ILBMdest *dest)
 
 /**** SPRT  Sprite ****/
 
-static void valSPRT(ILBMsprt *sprt)
+static gboolean readSPRT(FILE *file, ILBMsprt *sprt)
 {
-	sprt->preced = ntohs(sprt->preced);
+	g_assert(file != NULL && sprt != NULL);
+	return readUword(file, &sprt->preced);
 }
 
 static void dumpSPRT(ILBMsprt *sprt)
@@ -270,7 +281,6 @@ static gboolean unpackRGBN8(FILE *file, grayval *rgbbuf, gint32 pixelNeeded, Iff
 	}
 	return success;
 }
-
 
 static void unpackBits(const guint8 *bitlinebuf, guint8 *destline, gint bitnr, gint width)
 {
@@ -447,10 +457,11 @@ static void parseLines(FILE *file, guint8 *dst, gint width, gint hereheight, con
 	/* FIXME: check both */
 	if(ftype == ID_RGB8 || ftype == ID_RGBN)
 	{
-		/*const gboolean	success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);*/
-		/* above expression unused ATM */
-		dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
-		/* This way alpha doesn't work with RGB8 */
+		const gboolean	success = unpackRGBN8(file, (grayval *) dst, width * hereheight, ftype, bmhd->nPlanes == 13);
+		if(!success)
+			g_warning("Failed to unpack RGBN8 pixels");
+		else		/* This way alpha doesn't work with RGB8 */
+			dst += width * hereheight * ((13 == bmhd->nPlanes) ? byteppRGBA : byteppRGB);
 	}
 	else if(!cmap)
 	{
@@ -911,10 +922,9 @@ gint32 loadImage(const gchar *filename)
 						switch(chead.id)
 						{
 							case ID_BMHD:
-								succ = succ && iffReadData(file, &bmhd, sizeof bmhd);
+								succ = succ && readILBM(file, &bmhd);
 								if(succ)
 								{
-									valBMHD(&bmhd);
 									if(VERBOSE)
 										dumpBMHD(&bmhd);
 								}
@@ -927,10 +937,9 @@ gint32 loadImage(const gchar *filename)
 								succ = succ && iffReadData(file, cmap, hunksize);  /* FIXME: +1 unneeded? */
 								break;
 							case ID_CAMG:
-								succ = succ && iffReadData(file, &camg, sizeof camg);
+								succ = succ && readCAMG(file, &camg);
 								if(succ)
 								{
-									valCAMG(&camg);
 									if(VERBOSE)
 										dumpCAMG(&camg);
 								}               /* FIXME: error */
@@ -939,26 +948,24 @@ gint32 loadImage(const gchar *filename)
 								{
 									ILBMdpi	dpi;
 
-									succ = succ && iffReadData(file, &dpi, sizeof dpi);
+									succ = succ && readDPI(file, &dpi);
 									if(succ)
 									{
-										valDPI(&dpi);
 										if(VERBOSE)
 											dumpDPI(&dpi);
 									}             /* FIXME: error */
 								}
 								break;
 							case ID_DEST:
-								succ = succ && iffReadData(file, &dest, sizeof dest);
+								succ = succ && readDEST(file, &dest);
 								if(succ)
 								{
-									valDEST(&dest);
 									if(VERBOSE)
 									{
 										dumpDEST(&dest);
 									}
 									hasDest = TRUE;
-								}
+								}             /* FIXME: error */
 								break;
 							case ID_ANNO:
 							case ID__C__:
@@ -985,6 +992,30 @@ gint32 loadImage(const gchar *filename)
 										}
 									}             /* FIXME: error */
 									g_free(cont);
+								}
+								break;
+							case ID_GRAB:
+								{
+									ILBMgrab	grab;
+
+									succ = succ && readGRAB(file, &grab);
+									if(succ)
+									{
+										if(VERBOSE)
+											dumpGRAB(&grab);
+									}             /* FIXME: error */
+								}
+								break;
+							case ID_SPRT:
+								{
+									ILBMsprt	sprt;
+
+									succ = succ && readSPRT(file, &sprt);
+									if(succ)
+									{
+										if(VERBOSE)
+											dumpSPRT(&sprt);
+									}             /* FIXME: error */
 								}
 								break;
 							case ID_BODY:
