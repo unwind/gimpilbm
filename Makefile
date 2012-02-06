@@ -9,7 +9,7 @@ LDFLAGS=`$(GIMPTOOL) --libs`
 
 # --------------------------------------------------------------------------
 
-.PHONY:		clean
+.PHONY:		clean install
 
 gimpilbm.so:	byterun1.o grayscale.o gui.o hamehb.o iff.o ilbm.o plugin.o
 		$(CC) -o $@ $^ $(LDFLAGS)
@@ -31,4 +31,7 @@ plugin.o:	plugin.c plugin.h
 # --------------------------------------------------------------------------
 
 clean:
-	rm -f *.so *.o
+		rm -f *.so *.o
+
+install:	gimpilbm.so
+		$(GIMPTOOL) --install-bin $^
