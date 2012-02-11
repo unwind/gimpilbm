@@ -1,13 +1,13 @@
 INTRODUCTION
 ============
-This is a fork of the IFF-ILBM [GIMP] plugin by Johannes Teveﬂen.
+This is a fork of the IFF-ILBM [GIMP] plugin by Johannes Teve√üen.
 
 [IFF]-[ILBM] is an image file format that was popular on the Amiga series of epic home computers.
 
-It was forked by Emil Brink (<emil@obsession.se>) since Mr Teveﬂen seems to
+It was forked by Emil Brink (<emil@obsession.se>) since Mr Teve√üen seems to
 have stopped maintaining it, and the most recent version I could find of
 the original didn't build against current versions of GIMP (early 2012,
-version 2.6.11). I've done multiple attempts to contact Mr Teveﬂen, but not been successful.
+version 2.6.11). I've done multiple attempts to contact Mr Teve√üen, but not been successful.
 
 The first forked version was numbered 0.9.9.
 
@@ -34,7 +34,7 @@ Below is the original README from version 0.9.4:
 <pre>
     -DG_DISABLE_ASSERT
 /*
- *  This is the IFF-ILBM Gimp plugin by Johannes Teveﬂen,
+ *  This is the IFF-ILBM Gimp plugin by Johannes Teve√üen,
  *  eMail: &lt;j.tevessen@gmx.net>
  *
  *  Short:
