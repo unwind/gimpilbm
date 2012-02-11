@@ -50,11 +50,11 @@ static void genBMHD(ILBMbmhd *bmhd, guint16 width, guint16 height, guint8 depth)
 
 static void dumpBMHD(const ILBMbmhd *bmhd)
 {
-	printf("%ubit image %ux%u, max. %lu colors, %s\n", bmhd->nPlanes, bmhd->w, bmhd->h, 1L << bmhd->nPlanes, (bmhd->nPlanes >= 12) ? "RGB" : "indexed");
+	printf("%u-bit image %ux%u, max %lu colors, %s\n", bmhd->nPlanes, bmhd->w, bmhd->h, 1L << bmhd->nPlanes, (bmhd->nPlanes >= 12) ? "RGB" : "indexed");
 	/* RGB check okay? */
-	printf("x/y = %d/%d, Masking:%u, Compr.:%u\n", bmhd->x, bmhd->y, bmhd->masking, bmhd->compression);
+	printf("(x,y):(%d,%d), Masking:%u, Compr.:%u\n", bmhd->x, bmhd->y, bmhd->masking, bmhd->compression);
 	printf("Transparent color: %u, Aspect: %u/%u\n", bmhd->transparentColor, bmhd->xAspect, bmhd->yAspect);
-	printf("Page size: %dx%d\n", bmhd->pageWidth, bmhd->pageHeight);
+	printf("Page size: %ux%u\n", bmhd->pageWidth, bmhd->pageHeight);
 }
 
 /**** CAMG  Commodore AMiGa ****/
@@ -691,6 +691,7 @@ static void setCmap(gint32 imageID, const guint8 *cmap, gint ncols)
 			colormap[offset + 1] = green | (green >> 4);
 			colormap[offset + 2] = blue  | (blue >> 4);
 		}
+		printf("Force-saturated colors, converted incoming 0xR0G0B0 to 0xRRGGBB\n");
 	}
 	else
 		memcpy(colormap, cmap, 3 * ncols);
