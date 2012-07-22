@@ -7,7 +7,12 @@ This is a fork of the IFF-ILBM [GIMP] plugin by Johannes Teveßen.
 It was forked by Emil Brink (<emil@obsession.se>) since Mr Teveßen seems to
 have stopped maintaining it, and the most recent version I could find of
 the original didn't build against current versions of GIMP (early 2012,
-version 2.6.11). I've done multiple attempts to contact Mr Teveßen, but not been successful.
+version 2.6.11).
+
+Before releasing this in early 2012 I did multiple attempts to contact Mr Teveßen,
+and later learned that he passed away in 2003. I'm very sorry for the loss of all
+those who knew him, and humbly dedicate my work on this code to his memory. I hope
+he would appreciate that his code at least gets to live on.
 
 The first forked version was numbered 0.9.9.
 
