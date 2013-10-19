@@ -8,6 +8,6 @@
 extern const guint8	hamPal[16 * byteppRGB];
 
 extern grayval*	reallocEhbCmap(grayval *cmap, gint *p_ncols);
-extern void	deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gint alpha);
+extern void	deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gboolean alpha);
 
 #endif

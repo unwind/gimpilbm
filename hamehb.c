@@ -160,7 +160,7 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 	}
 }
 
-void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gint alpha)
+void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gboolean alpha)
 {
 	grayval cr = 0, cg = 0, cb = 0;
 	guint8 bmask;
@@ -181,7 +181,7 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 	}
 	while(width--)
 	{
-		guint8	idx = *src++;
+		const guint8	idx = *src++;
 
 		switch(idx >> depth)
 		{
