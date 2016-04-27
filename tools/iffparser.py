@@ -69,7 +69,10 @@ class IffAnalyzer(object):
 				print "Annotation: \"%s\"" % here[2]
 			elif here[0] == "BMHD":
 				bmhd = struct.unpack(">HHhhBBBBHBBhh", here[2])
-				print "Bitmap:", bmhd
+				fields = ["Width", "Height", "x", "y", "Depth", "Masking", "Compression", None, "TransparentColor", "xAspect", "yAspect", "pageWidth", "pageHeight"]
+				for i in xrange(len(fields)):
+					if fields[i] is not None:
+						print "%-16s: %s" % (fields[i], bmhd[i])
 
 if __name__ == "__main__":
 	for a in sys.argv[1:]:
