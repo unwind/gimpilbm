@@ -62,14 +62,14 @@ gboolean readUword(FILE *file, guint16 *dest)
 
 gboolean writeUword(FILE *file, guint16 val)
 {
-  gboolean	success;
- 
-  g_assert(file != NULL);
-  val = htons(val);
-  success = fwrite(&val, sizeof val, 1, file) == 1;
-  if(!success)
-    g_warning("Error writing (2).");
-  return success;
+	gboolean	success;
+
+	g_assert(file != NULL);
+	val = htons(val);
+	success = fwrite(&val, sizeof val, 1, file) == 1;
+	if(!success)
+		g_warning("Error writing (2).");
+	return success;
 }
 
 gboolean readUchar(FILE *file, guint8 *dest)
