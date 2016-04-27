@@ -38,10 +38,16 @@ class ChunkStream(object):
 		self._pos += 4
 		return ru[0]
 
+	def get_data(self, dlen):
+		r = self._data[self._pos : self._pos + dlen]
+		self._pos += dlen
+		return r
+
 	def get_chunk(self):
 		cid = self.get_id()
 		cln = self.get_u32()
-		return (cid, cln)
+		data = self.get_data(cln)
+		return (cid, cln, data)
 
 	def skip(self, distance):
 		self._pos += distance
@@ -58,8 +64,12 @@ class IffAnalyzer(object):
 		cs = ChunkStream(self._data, "ILBM")
 		while cs.chunks_left():
 			here = cs.get_chunk()
-			print "%4s %u" % here
-			cs.skip(here[1])
+			print "%4s %u" % here[:2]
+			if here[0] == "ANNO":
+				print "Annotation: \"%s\"" % here[2]
+			elif here[0] == "BMHD":
+				bmhd = struct.unpack(">HHhhBBBBHBBhh", here[2])
+				print "Bitmap:", bmhd
 
 if __name__ == "__main__":
 	for a in sys.argv[1:]:
