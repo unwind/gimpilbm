@@ -8,7 +8,7 @@
 #include "iff.h"
 
 #ifndef VERSION
-#  define VERSION "0.9.9"
+#  define VERSION "0.9.10"
 #endif
 
 #define PLUG_IN_VERSION VERSION" - 2012-01-22"
