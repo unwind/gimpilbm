@@ -74,7 +74,7 @@ static void queryPlugin(void)
 	};
 	static const gsize nsave_args = sizeof save_args / sizeof *save_args;
 
-	static const gchar *authors = "Johannes Tevess\xc9\xa9n <j.tevessen@gmx.net>,\nEmil Brink <emil@obsession.se>";
+	static const gchar *authors = "Johannes Teve" "\xc3\x9f" "en <j.tevessen@gmx.net>,\nEmil Brink <emil@obsession.se>";
 
 	gimp_install_procedure(loadFuncID, "Loads IFF-ILBM (InterLeaved BitMap) files", "Currently loading of masks is disabled",
 			 authors, authors,
