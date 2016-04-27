@@ -11,7 +11,7 @@
 #  define VERSION "0.9.10"
 #endif
 
-#define PLUG_IN_VERSION VERSION" - 2012-01-22"
+#define PLUG_IN_VERSION VERSION
 
 #ifndef DEBUGLEVEL
 #  define DEBUGLEVEL	2
