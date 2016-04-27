@@ -6,18 +6,24 @@ This is a fork of the IFF-ILBM [GIMP] plugin by Johannes Teveßen.
 
 It was forked by Emil Brink (<emil@obsession.se>) since Mr Teveßen seems to
 have stopped maintaining it, and the most recent version I could find of
-the original didn't build against current versions of GIMP (early 2012,
-version 2.6.11).
+the original didn't build against current versions of GIMP (this was created in early 2012, using GIMP 2.6.11).
 
 Before releasing this in early 2012 I did multiple attempts to contact Mr Teveßen,
 and later learned that he passed away in 2003. I'm very sorry for the loss of all
 those who knew him, and humbly dedicate my work on this code to his memory. I hope
 he would appreciate that his code at least gets to live on.
 
-The first forked version was numbered 0.9.9.
+The first forked version was numbered 0.9.9. The current version is 0.9.10.
 
-CHANGES
-=======
+CHANGES 0.9.10
+==============
+* Change date written in the `ANNO` chunk, it was left at 2002.
+* Updated date shown in the GIMP's plug-in browser. Not very maintainable but required.
+* Corrected Mr Teveßen's name in the plug-in browser, had incorrectly-encoded `ß`.
+* Added the skeleton for an IFF/ILBM parser tool written in Python.
+
+CHANGES AFTER FORKING
+=====================
 * Modified to compile using current versions of GIMP.
 * Changed a lot of coding style things to make it suit me better. Might be considered rude, but I had serious trouble working in the original style and really wanted to have this working.
 * Rely on gimptool for building.
