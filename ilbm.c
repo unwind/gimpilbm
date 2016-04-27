@@ -15,8 +15,6 @@
 #include "grayscale.h"
 #include "ilbm.h"
 
-#define DATEPRE2K	"01.01.2002"
-
 /**** BMHD BitMap HeaDer ****/
 
 static gboolean readILBM(FILE *file, ILBMbmhd *bmhd)
@@ -1275,7 +1273,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 
 			/**** ANNO ****/
 /*#define PLUGID "Written by the Gimp ILBM plugin "VERSION"\0"*/
-#define PLUGID		"$VER: Written by the Gimp ILBM plugin "VERSION" ("DATEPRE2K")\0"
+#define PLUGID		"$VER: Written by the GIMP ILBM plugin " VERSION " (" __DATE__ ")\0"
 #define PLUGSIZE	(sizeof(PLUGID) & ~1)
 			iffInitHeader(&chead, ID_ANNO, PLUGSIZE);
 			succ = succ && iffWriteHeader(file, &chead);
