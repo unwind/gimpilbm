@@ -1,5 +1,3 @@
-#include <arpa/inet.h>
-
 #include "iff.h"
 
 void idToString(IffID id, gchar *str, gsize str_max)
@@ -28,7 +26,7 @@ gboolean readUlong(FILE *file, guint32 *dest)
 	else
 	{
 		if(dest != NULL)
-			*dest = ntohl(val);
+			*dest = GUINT32_FROM_BE(val);
 	}
 	return success;
 }
@@ -38,7 +36,7 @@ gboolean writeUlong(FILE *file, guint32 val)
 	gboolean	success;
 
 	g_assert(file != NULL);
-	val = htonl(val);
+	val = GUINT32_TO_BE(val);
 	success = fwrite(&val, sizeof(val), 1, file) == 1;
 	if(!success)
 		g_warning("Error writing (4).");
@@ -57,7 +55,7 @@ gboolean readUword(FILE *file, guint16 *dest)
 	else
 	{
 		if(dest != NULL)
-			*dest = ntohs(val);
+			*dest = GUINT16_FROM_BE(val);
 	}
 	return success;
 }
@@ -67,7 +65,7 @@ gboolean writeUword(FILE *file, guint16 val)
 	gboolean	success;
 
 	g_assert(file != NULL);
-	val = htons(val);
+	val = GUINT16_TO_BE(val);
 	success = fwrite(&val, sizeof val, 1, file) == 1;
 	if(!success)
 		g_warning("Error writing (2).");

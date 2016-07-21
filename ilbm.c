@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <arpa/inet.h>
-
 #include <libgimp/gimp.h>
 
 #include "plugin.h"
@@ -39,8 +37,8 @@ static gboolean readILBM(FILE *file, ILBMbmhd *bmhd)
 static void genBMHD(ILBMbmhd *bmhd, guint16 width, guint16 height, guint8 depth)
 {
 	memset(bmhd, 0, sizeof *bmhd);
-	bmhd->w = bmhd->pageWidth = htons(width);
-	bmhd->h = bmhd->pageHeight = htons(height);
+	bmhd->w = bmhd->pageWidth = GUINT16_TO_BE(width);
+	bmhd->h = bmhd->pageHeight = GUINT16_TO_BE(height);
 	bmhd->nPlanes = depth;
 	bmhd->compression = cmpNone;
 	bmhd->xAspect = bmhd->yAspect = 1;
@@ -1266,7 +1264,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			gboolean	freeCmap;
 
 			/**** FORM xxxx ILBM ****/
-			iffInitHeader(&fhead, ID_FORM, ntohl(0x0BADC0DE));
+			iffInitHeader(&fhead, ID_FORM, GUINT32_FROM_BE(0x0BADC0DE));
 			succ = succ && iffWriteHeader(file, &fhead);
 			succ = succ && writeUlong(file, chunky ? ID_RGBN : ID_ILBM); /* always chunky? */
 			totsize += 4;
@@ -1347,7 +1345,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 				iffInitHeader(&chead, ID_CAMG, sizeof camg);
 				succ = succ && iffWriteHeader(file, &chead);
 				succ = succ && writeUlong(file, camg.viewModes);	/* FIXME */
-				totsize += 8 + sizeof(ILBMcamg);
+				totsize += 8 + sizeof camg;
 			}
 
 			/**** BODY ****/
@@ -1355,7 +1353,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			bodyLenOff = ftell(file) + 4;  /* FIXME */
 			if(VERBOSE)
 				printf("bodyLenOff:%d\n", bodyLenOff);
-			iffInitHeader(&chead, ID_BODY, ntohl(0x0BADC0DE));
+			iffInitHeader(&chead, ID_BODY, GUINT32_FROM_BE(0x0BADC0DE));
 			succ = succ && iffWriteHeader(file, &chead);
 			{
 				gint	threshold = (gint) (opaque * ilbmvals.threshold);
