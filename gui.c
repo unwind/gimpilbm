@@ -50,7 +50,7 @@ gint saveDialog(void)
 	gtk_container_add(GTK_CONTAINER(frame), table);
 
 	/**** Alpha treshold ****/
-	label = gtk_label_new("Alpha Treshold");
+	label = gtk_label_new("Alpha Threshold");
 	gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
 	gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL, 5, 0);
 	scale_data = gtk_adjustment_new(ilbmvals.threshold, 0.0, 1.0, 0.01, 0.01, 0.0);
