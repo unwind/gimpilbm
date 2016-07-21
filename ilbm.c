@@ -1344,7 +1344,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 
 			if(camg.viewModes)
 			{
-				iffInitHeader(&chead, ID_CAMG, sizeof chead);
+				iffInitHeader(&chead, ID_CAMG, sizeof camg);
 				succ = succ && iffWriteHeader(file, &chead);
 				succ = succ && writeUlong(file, camg.viewModes);	/* FIXME */
 				totsize += 8 + sizeof(ILBMcamg);
