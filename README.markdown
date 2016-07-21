@@ -13,7 +13,11 @@ and later learned that he passed away in 2003. I'm very sorry for the loss of al
 those who knew him, and humbly dedicate my work on this code to his memory. I hope
 he would appreciate that his code at least gets to live on.
 
-The first forked version was numbered 0.9.9. The current version is 0.9.10.
+The first forked version was numbered 0.9.9. The current version is 0.9.11.
+
+CHANGES 0.9.11
+==============
+* Fix bug that broke writing the `CAMG` chunk, it was given the wrong size which resulted in the file being corrupt.
 
 CHANGES 0.9.10
 ==============
