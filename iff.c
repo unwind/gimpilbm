@@ -1,3 +1,5 @@
+#include <arpa/inet.h>
+
 #include "iff.h"
 
 void idToString(IffID id, gchar *str, gsize str_max)

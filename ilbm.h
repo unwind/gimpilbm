@@ -1,8 +1,6 @@
 #ifndef ilbm_h
 #define ilbm_h
 
-#include <netinet/in.h>
-#include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 
 #include "iff.h"

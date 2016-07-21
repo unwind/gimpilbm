@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <netinet/in.h>
-#include <gtk/gtk.h>
+#include <arpa/inet.h>
+
 #include <libgimp/gimp.h>
 
 #include "plugin.h"

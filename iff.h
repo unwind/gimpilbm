@@ -2,7 +2,6 @@
 #define iff_h
 
 #include <stdio.h>
-#include <netinet/in.h>
 #include <glib.h>
 
 #define MAKE_ID(a,b,c,d) ((IffID) ((a)<<24 | (b)<<16 | (c)<<8 | (d)))
