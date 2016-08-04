@@ -865,7 +865,7 @@ gint32 loadImage(const gchar *filename)
 	gchar		*name;
 	const gsize	name_size = strlen(filename) + 10;
 
-	if(1 || VERBOSE)
+	if(VERBOSE)
 		timerStart();
 	name = g_new(gchar, name_size);
 	if(!name)
@@ -1078,7 +1078,7 @@ gint32 loadImage(const gchar *filename)
 		}
 	}
 	g_free(name);
-	if(1 || VERBOSE)
+	if(VERBOSE)
 		timerStop();
 	return imageID;
 }
@@ -1189,7 +1189,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 	gchar		*name;
 	const gsize	name_size = strlen(filename) + 10;
 
-	if(1 || VERBOSE) timerStart();
+	if(VERBOSE) timerStart();
 	dtype = gimp_drawable_type(drawableID);
 	switch(dtype)
 	{
@@ -1488,6 +1488,6 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 		gimp_drawable_detach(drawable);
 	}
 	g_free(name);
-	if(1 || VERBOSE) timerStop();
+	if(VERBOSE) timerStop();
 	return rc;
 }

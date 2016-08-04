@@ -4,7 +4,7 @@
 
 GIMPTOOL="gimptool-2.0"
 
-CFLAGS=`$(GIMPTOOL) --cflags` -Wall -Wextra -pedantic
+CFLAGS=`$(GIMPTOOL) --cflags` -Wall -Wextra -pedantic -DDEBUGLEVEL=0
 LDFLAGS=`$(GIMPTOOL) --libs`
 
 # --------------------------------------------------------------------------
