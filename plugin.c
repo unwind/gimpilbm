@@ -58,8 +58,8 @@ static void queryPlugin(void)
 	{
 		{GIMP_PDB_IMAGE, "image", "Output image"}
 	};
-	static const gsize nload_args = sizeof(load_args) / sizeof(*load_args);
-	static const gsize nload_return_vals = sizeof(load_return_vals) / sizeof(*load_return_vals);
+	static const gsize nload_args = sizeof load_args / sizeof *load_args;
+	static const gsize nload_return_vals = sizeof load_return_vals / sizeof *load_return_vals;
 	static GimpParamDef save_args[] =
 	{
 		{GIMP_PDB_INT32, "run_mode", "Interactive, non-interactive"},

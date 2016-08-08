@@ -37,7 +37,7 @@ gboolean writeUlong(FILE *file, guint32 val)
 
 	g_assert(file != NULL);
 	val = GUINT32_TO_BE(val);
-	success = fwrite(&val, sizeof(val), 1, file) == 1;
+	success = fwrite(&val, sizeof val, 1, file) == 1;
 	if(!success)
 		g_warning("Error writing (4).");
 	return success;

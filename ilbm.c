@@ -1272,14 +1272,14 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			/**** ANNO ****/
 /*#define PLUGID "Written by the Gimp ILBM plugin "VERSION"\0"*/
 #define PLUGID		"$VER: Written by the GIMP ILBM plugin " VERSION " (" __DATE__ ")\0"
-#define PLUGSIZE	(sizeof(PLUGID) & ~1)
+#define PLUGSIZE	(sizeof PLUGID & ~1)
 			iffInitHeader(&chead, ID_ANNO, PLUGSIZE);
 			succ = succ && iffWriteHeader(file, &chead);
 			succ = succ && iffWriteData(file, PLUGID, PLUGSIZE);
 			totsize += 8 + PLUGSIZE;
 
 			/**** BMHD ****/
-			iffInitHeader(&chead, ID_BMHD, sizeof(ILBMbmhd));
+			iffInitHeader(&chead, ID_BMHD, sizeof (ILBMbmhd));
 			succ = succ && iffWriteHeader(file, &chead);
 
 			if(VERBOSE)
@@ -1292,7 +1292,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			if(outHAM)
 				bmhd.nPlanes = outHAM;
 			succ = succ && iffWriteData(file, &bmhd, sizeof bmhd);
-			totsize += 8 + sizeof(ILBMbmhd);
+			totsize += 8 + sizeof (ILBMbmhd);
 
 			/**** CMAP ****/
 			freeCmap = FALSE;
