@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <glib.h>
 
-#define MAKE_ID(a,b,c,d) ((IffID) ((a)<<24 | (b)<<16 | (c)<<8 | (d)))
+#define MAKE_ID(a,b,c,d) ((IffID) ((guint32) (a) << 24 | ((guint32) b) << 16 | ((guint32) c) << 8 | ((guint32) d)))
 
 #define ID_FORM	MAKE_ID('F','O','R','M')
 #define ID_LIST	MAKE_ID('L','I','S','T')
