@@ -13,6 +13,4 @@ typedef struct {
 
 extern ILBMSaveVals		ilbmvals;
 
-extern const gchar *saveFuncID;
-
 #endif

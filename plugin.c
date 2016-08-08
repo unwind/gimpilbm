@@ -33,9 +33,9 @@ ILBMSaveVals ilbmvals =
 
 /**** standard settings ****/
 
-const gchar *loadFuncID = "file_ilbm_load";
-const gchar *saveFuncID = "file_ilbm_save";
-const gchar *nameExtensions = "ilbm,iff,lbm,acb,ham";
+static const gchar *loadFuncID = "file_ilbm_load";
+static const gchar *saveFuncID = "file_ilbm_save";
+static const gchar *nameExtensions = "ilbm,iff,lbm,acb,ham";
 
 /**** main() ****/
 
