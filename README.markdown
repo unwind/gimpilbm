@@ -15,6 +15,10 @@ he would appreciate that his code at least gets to live on.
 
 The first forked version was numbered 0.9.9. The current version is 0.9.11.
 
+CHANGES 0.9.12
+==============
+* Fix bug that prevented images with mask to load properly. Instead you got the left half, with the right one blank.
+
 CHANGES 0.9.11
 ==============
 * Fix bug that broke writing the `CAMG` chunk, it was given the wrong size which resulted in the file being corrupt.
