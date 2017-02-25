@@ -1166,6 +1166,8 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			break;
 		case GIMP_RGB_IMAGE:
 			break;
+		case GIMP_GRAY_IMAGE:
+			break;
 		case GIMP_INDEXEDA_IMAGE:
 			alpha = 1;
 		case GIMP_INDEXED_IMAGE:
@@ -1200,7 +1202,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 		gint		outNcols = 0;          /* number of colors in cmap */
 
 		/* IMPORTANT: cmap can only be != 0 if the image is neither RGB nor GRAY(!) */
-		if(NULL != cmap)
+		if(cmap != NULL)
 			nPlanes = calcPlanes(ncols);
 		else
 		{
