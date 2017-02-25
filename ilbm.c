@@ -1326,11 +1326,9 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			iffInitHeader(&chead, ID_BODY, GUINT32_FROM_BE(0x0BADC0DE));
 			succ = succ && iffWriteHeader(file, &chead);
 			{
-				gint	threshold = (gint) (opaque * ilbmvals.threshold);
-				gint32	tileHeight = gimp_tile_height();
-				guint8	*buffer;
-
-				buffer = g_new(guint8, tileHeight * width * bytepp);
+				const gint	threshold = (gint) (opaque * ilbmvals.threshold);
+				const gint32	tileHeight = gimp_tile_height();
+				guint8 * const buffer = g_new(guint8, tileHeight * width * bytepp);
 				if(DEBUG)
 					printf("Using a buffer of %ld byte.\n", (long) tileHeight * width * bytepp);
 				if(buffer)
