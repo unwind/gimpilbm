@@ -52,27 +52,63 @@ class ChunkStream(object):
 	def skip(self, distance):
 		self._pos += distance
 
-
 class IffAnalyzer(object):
 	def __init__(self, fn):
 		self._filename = fn
 		self._data = None
 
+	def analyze_body(self, cs, body, bmhd):
+		w = bmhd["Width"]
+		h = bmhd["Height"]
+		nplanes = bmhd["Depth"]
+		wordsperline = (w + 15) / 16
+		bytesperline = 2 * wordsperline
+		i = 0
+		for y in xrange(h):
+			for j in xrange(nplanes):
+				nbytes = 0
+				while i < body[1] and nbytes < bytesperline:
+					x = ord(body[2][i])
+					if x > 127: x -= 256
+					i += 1
+					print "At %u (%u): %d ->" % (i - 1, nbytes, x),
+					if x >= 0 and x <= 127:
+						print "copy(%d)" % (x + 1)
+						nbytes += x + 1
+						i += x + 1
+					elif x >= -127 and x <= -1:
+						repl = ord(body[2][i])
+						nbytes += -x + 1
+						i += 1
+						print "replicate(0x%02x %d times)" % (repl, -x + 1)
+					else:
+						pass	# -128 does nothing!
+		print "Consumed %u bytes (out of %u)" % (i, body[1])
+		if i < body[1]:
+			print "BODY has %u extraneous bytes:" % (body[1] - i)
+			for j in range(body[1] - i):
+				print i + j, len(body[2])
+				print ", ".join(["0x%02x" % ord(body[2][i + j])])
+
 	def analyze(self):
 		if self._data is None:
 			self._data = open(self._filename, "rb").read()
 		cs = ChunkStream(self._data, "ILBM")
+		bmhd = {}
 		while cs.chunks_left():
 			here = cs.get_chunk()
 			print "%4s %u" % here[:2]
 			if here[0] == "ANNO":
 				print "Annotation: \"%s\"" % here[2]
 			elif here[0] == "BMHD":
-				bmhd = struct.unpack(">HHhhBBBBHBBhh", here[2])
+				data = struct.unpack(">HHhhBBBBHBBhh", here[2])
 				fields = ["Width", "Height", "x", "y", "Depth", "Masking", "Compression", None, "TransparentColor", "xAspect", "yAspect", "pageWidth", "pageHeight"]
 				for i in xrange(len(fields)):
 					if fields[i] is not None:
-						print "%-16s: %s" % (fields[i], bmhd[i])
+						bmhd[fields[i]] = data[i]
+						print "%-16s: %s" % (fields[i], data[i])
+			elif here[0] == "BODY":
+				self.analyze_body(cs, here, bmhd)
 
 if __name__ == "__main__":
 	for a in sys.argv[1:]:
