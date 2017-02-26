@@ -180,11 +180,9 @@ void iffDumpHeader(const IffChunkHeader *chd)
 
 gboolean iffReadData(FILE *file, void *data, gsize len)
 {
-	gboolean	success;
-
 	g_assert(file != NULL);
 	g_assert(data != NULL);
-	success = fread(data, len, 1, file) == 1;
+	const gboolean success = fread(data, len, 1, file) == 1;
 	if(!success)
 		g_warning("Error reading.");
 	return success;
@@ -192,11 +190,9 @@ gboolean iffReadData(FILE *file, void *data, gsize len)
 
 gboolean iffWriteData(FILE *file, const void *data, gsize len)
 {
-	gboolean	success;
-
 	g_assert(file!= NULL);
 	g_assert(data != NULL);
-	success = fwrite(data, len, 1, file) == 1;
+	const gboolean success = fwrite(data, len, 1, file) == 1;
 	if(!success)
 		g_warning("Error writing.");
 	return success;
