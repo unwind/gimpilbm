@@ -60,6 +60,7 @@ class IffAnalyzer(object):
 	def analyze_body(self, cs, body, bmhd):
 		w = bmhd["Width"]
 		h = bmhd["Height"]
+		compressed = bmhd["Compression"] == 1
 		nplanes = bmhd["Depth"]
 		wordsperline = (w + 15) / 16
 		bytesperline = 2 * wordsperline
@@ -68,21 +69,25 @@ class IffAnalyzer(object):
 			for j in xrange(nplanes):
 				nbytes = 0
 				while i < body[1] and nbytes < bytesperline:
-					x = ord(body[2][i])
-					if x > 127: x -= 256
-					i += 1
-					print "At %u (%u): %d ->" % (i - 1, nbytes, x),
-					if x >= 0 and x <= 127:
-						print "copy(%d)" % (x + 1)
-						nbytes += x + 1
-						i += x + 1
-					elif x >= -127 and x <= -1:
-						repl = ord(body[2][i])
-						nbytes += -x + 1
+					if compressed:
+						x = ord(body[2][i])
+						if x > 127: x -= 256
 						i += 1
-						print "replicate(0x%02x %d times)" % (repl, -x + 1)
+						print "At %u (%u): %d ->" % (i - 1, nbytes, x),
+						if x >= 0 and x <= 127:
+							print "copy(%d)" % (x + 1)
+							nbytes += x + 1
+							i += x + 1
+						elif x >= -127 and x <= -1:
+							repl = ord(body[2][i])
+							nbytes += -x + 1
+							i += 1
+							print "replicate(0x%02x %d times)" % (repl, -x + 1)
+						else:
+							pass	# -128 does nothing!
 					else:
-						pass	# -128 does nothing!
+						i += bytesperline
+						nbytes += bytesperline
 		print "Consumed %u bytes (out of %u)" % (i, body[1])
 		if i < body[1]:
 			print "BODY has %u extraneous bytes:" % (body[1] - i)
