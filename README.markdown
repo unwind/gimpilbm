@@ -13,7 +13,11 @@ and later learned that he passed away in 2003. I'm very sorry for the loss of al
 those who knew him, and humbly dedicate my work on this code to his memory. I hope
 he would appreciate that his code at least gets to live on.
 
-The first forked version was numbered 0.9.9. The current version is 0.9.11.
+The first forked version was numbered 0.9.9. The current version is 0.10.1.
+
+CHANGES 0.10.1
+==============
+* Fix bug that actually caused all saved images to be "slightly" corrupt, by having malformed `BODY`-type chunks.
 
 CHANGES 0.9.12
 ==============
