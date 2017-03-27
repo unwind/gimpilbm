@@ -1368,9 +1368,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 							while(scanlines--)
 							{
 								/* 24bit is saved r0..r7g0..g7b0..b7 */
-								gint	rgb;
-								
-								for(rgb = 0; rgb < (bytepp - alpha); ++rgb)
+								for(gint rgb = 0; rgb < (bytepp - alpha); ++rgb)
 								{
 									for(gint bitnr = 0; bitnr < bitppGray; ++bitnr)
 									{
