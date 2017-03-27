@@ -36,15 +36,14 @@ const guint8 hamPal[16 * byteppRGB] =
 
 #define	hamPalCols (sizeof hamPal / byteppRGB)
 
+/* Is r, g, or b the smallest difference? */
 static int judgeDiff(int r1, int g1, int b1, int r2, int g2, int b2)
 {
-	/* Is r, g, or b the smallest difference? */
-	int	dr, dg, db;
+	const int dr = abs(r1 - r2);
+	const int dg = abs(g1 - g2);
+	const int db = abs(b1 - b2);
 	int	pts;
 
-	dr = abs(r1 - r2);
-	dg = abs(g1 - g2);
-	db = abs(b1 - b2);
 	/* ok, half its penalty */
 	/* calculations are mhpf.. */
 	if(dr < dg)
@@ -94,7 +93,6 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 {
 	/* We assume 8bit color depth per channel */
 	int	ar = -1, ag = 0, ab = 0;
-	int	nr, ng, nb;
 	int	crp, cgp = 0, cbp = 0;    /* Make gcc happy */
 
 	g_assert(hamIdxOut != NULL);
@@ -106,9 +104,9 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 		int constPts;
 		guint8 offs;
 
-		nr = *rgbIn++;
-		ng = *rgbIn++;
-		nb = *rgbIn++;
+		const int nr = *rgbIn++;
+		const int ng = *rgbIn++;
+		const int nb = *rgbIn++;
 		if(ar != -1)
 		{
 			crp = judgeDiff(ar, ag, ab, (nr & 0xF0) * 17 / 16, ag, ab);
@@ -186,9 +184,9 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 		switch(idx >> depth)
 		{
 		default:
-			cr = cmap[((short) idx) * 3 + 0];
-			cg = cmap[((short) idx) * 3 + 1];
-			cb = cmap[((short) idx) * 3 + 2];
+			cr = cmap[3 * idx + 0];
+			cg = cmap[3 * idx + 1];
+			cb = cmap[3 * idx + 2];
 			break;
 		case 1:
 			cb = hamXbitToGray8(depth, idx & bmask);
