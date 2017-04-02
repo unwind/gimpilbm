@@ -174,6 +174,7 @@ static grayval hamExpand(grayval data, guint16 depth)
 void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gboolean alpha)
 {
 	grayval cr = 0, cg = 0, cb = 0;
+	grayval	* const mods[] = { &cb, &cr, &cg };
 
 	g_assert(dest != NULL);
 	g_assert(src != NULL);
@@ -191,24 +192,14 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 		const grayval	data = idx & dmask;
 		const grayval	control = idx >> depth;
 
-		switch(control)
+		if(control == HAM_MODIFY_NONE)	/* Replace all components with color from palette. */
 		{
-		case HAM_MODIFY_NONE:
-			/* Update all colors from palette. */
 			cr = cmap[3 * data + 0];
 			cg = cmap[3 * data + 1];
 			cb = cmap[3 * data + 2];
-			break;
-		case HAM_MODIFY_RED:
-			cr = hamExpand(data, depth);
-			break;
-		case HAM_MODIFY_GREEN:
-			cg = hamExpand(data, depth);
-			break;
-		case HAM_MODIFY_BLUE:
-			cb = hamExpand(data, depth);
-			break;
 		}
+		else	/* Use 'control' to index into pointer array, and overwrite proper component. */
+			*mods[control - 1] = hamExpand(data, depth);
 		/* Write current color into output RGB buffer. */
 		*dest++ = cr;
 		*dest++ = cg;
