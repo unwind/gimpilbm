@@ -164,6 +164,13 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 #define	HAM_MODIFY_GREEN	3	/* Hello? */
 #define	HAM_MODIFY_BLUE		1
 
+static grayval hamExpand(grayval data, guint16 depth)
+{
+	if(depth == 4)
+		return (data << 4) | data;
+	return (data << 2) | (data >> 4);
+}
+
 void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gboolean alpha)
 {
 	grayval cr = 0, cg = 0, cb = 0;
@@ -174,12 +181,15 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 	g_assert(depth >= 3);
 	g_assert(cmap != NULL);
 
+	depth -= 2;
+	const grayval dmask = (1 << depth) - 1;
+
 	/* Note: this treats each scanline on its own, doesn't modify color across scanlines. Not sure what the hardware does. */
 	while(width--)
 	{
-		const guint8	idx = *src++;
-		const guint8	data = idx & 0xf;
-		const guint8	control = (idx >> 4) & 3;
+		const grayval	idx = *src++;
+		const grayval	data = idx & dmask;
+		const grayval	control = idx >> depth;
 
 		switch(control)
 		{
@@ -190,13 +200,13 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 			cb = cmap[3 * data + 2];
 			break;
 		case HAM_MODIFY_RED:
-			cr = (data << 4) | data;
+			cr = hamExpand(data, depth);
 			break;
 		case HAM_MODIFY_GREEN:
-			cg = (data << 4) | data;
+			cg = hamExpand(data, depth);
 			break;
 		case HAM_MODIFY_BLUE:
-			cb = (data << 4) | data;
+			cb = hamExpand(data, depth);
 			break;
 		}
 		/* Write current color into output RGB buffer. */
