@@ -22,16 +22,17 @@ grayval* reallocEhbCmap(grayval *cmap, gint *p_ncols)
 
 /**** HAM stuff ****/
 
+/* Pre-optimized (?) constant palette for HAM, 16 colors. */
 const guint8 hamPal[16 * byteppRGB] =
 {
-	0x02, 0x02, 0x24, 0x02, 0xFE, 0x44,
-	0xFE, 0x02, 0x59, 0x02, 0x7E, 0x3A,
-	0xFE, 0xFE, 0x49, 0x7E, 0x02, 0x42,
-	0x7E, 0xFE, 0x3E, 0xFE, 0x7E, 0x85,
-	0x7E, 0x7E, 0x77, 0x02, 0x02, 0xFC,
-	0x02, 0xFE, 0xFC, 0xFE, 0x02, 0xFC,
-	0x02, 0x7E, 0xFC, 0xFE, 0xFE, 0xFC,
-	0x7E, 0x02, 0xFC, 0x7E, 0xFE, 0xFC
+	0x02, 0x02, 0x24,  0x02, 0xFE, 0x44,
+	0xFE, 0x02, 0x59,  0x02, 0x7E, 0x3A,
+	0xFE, 0xFE, 0x49,  0x7E, 0x02, 0x42,
+	0x7E, 0xFE, 0x3E,  0xFE, 0x7E, 0x85,
+	0x7E, 0x7E, 0x77,  0x02, 0x02, 0xFC,
+	0x02, 0xFE, 0xFC,  0xFE, 0x02, 0xFC,
+	0x02, 0x7E, 0xFC,  0xFE, 0xFE, 0xFC,
+	0x7E, 0x02, 0xFC,  0x7E, 0xFE, 0xFC
 };
 
 #define	hamPalCols (sizeof hamPal / byteppRGB)
@@ -158,10 +159,14 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 	}
 }
 
+#define	HAM_MODIFY_NONE		0
+#define	HAM_MODIFY_RED		2
+#define	HAM_MODIFY_GREEN	3	/* Hello? */
+#define	HAM_MODIFY_BLUE		1
+
 void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const grayval *cmap, gboolean alpha)
 {
 	grayval cr = 0, cg = 0, cb = 0;
-	guint8 bmask;
 
 	g_assert(dest != NULL);
 	g_assert(src != NULL);
@@ -169,35 +174,32 @@ void deHam(grayval *dest, const palidx *src, gint width, guint16 depth, const gr
 	g_assert(depth >= 3);
 	g_assert(cmap != NULL);
 
-	depth -= 2;                   /* control bits */
-	bmask = (1 << depth) - 1;
-	if(width && (*src >> depth))
-	{
-		/* FIXME: only once */
-		/* Note: ADPro takes last pixel of previous row as default.. */
-		fputs("Warning: HAM line starts with undefined color. Setting to black.\n", stderr);
-	}
+	/* Note: this treats each scanline on its own, doesn't modify color across scanlines. Not sure what the hardware does. */
 	while(width--)
 	{
 		const guint8	idx = *src++;
+		const guint8	data = idx & 0xf;
+		const guint8	control = (idx >> 4) & 3;
 
-		switch(idx >> depth)
+		switch(control)
 		{
-		default:
-			cr = cmap[3 * idx + 0];
-			cg = cmap[3 * idx + 1];
-			cb = cmap[3 * idx + 2];
+		case HAM_MODIFY_NONE:
+			/* Update all colors from palette. */
+			cr = cmap[3 * data + 0];
+			cg = cmap[3 * data + 1];
+			cb = cmap[3 * data + 2];
 			break;
-		case 1:
-			cb = hamXbitToGray8(depth, idx & bmask);
+		case HAM_MODIFY_RED:
+			cr = (data << 4) | data;
 			break;
-		case 2:
-			cr = hamXbitToGray8(depth, idx & bmask);
+		case HAM_MODIFY_GREEN:
+			cg = (data << 4) | data;
 			break;
-		case 3:
-			cg = hamXbitToGray8(depth, idx & bmask);
+		case HAM_MODIFY_BLUE:
+			cb = (data << 4) | data;
 			break;
 		}
+		/* Write current color into output RGB buffer. */
 		*dest++ = cr;
 		*dest++ = cg;
 		*dest++ = cb;

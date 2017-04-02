@@ -1218,6 +1218,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			}
 		}
 
+		printf("saving ...\n");
 		if(VERBOSE)
 			printf("=== Saving %s...\n", filename);
 		file = fopen(filename, "wb");
@@ -1275,6 +1276,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 				camg.viewModes |= ham;
 				outCmap = hamPal;
 				outNcols = (sizeof hamPal) / byteppRGB;
+				printf("saving as ham, outNcols=%u\n", outNcols);
 			}
 			else if(cmap)
 			{
@@ -1436,7 +1438,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 				{                /* buffer==0 */
 				}
 			}
-			if(0 != fclose(file))
+			if(fclose(file) != 0)
 			{
 				perror("fclose()");
 				rc = FALSE;

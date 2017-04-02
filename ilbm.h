@@ -43,7 +43,6 @@
 #define ID_copy	MAKE_ID('c','o','p','y')
 
 #define ham4bitToGray8(val4)	((((val4) << 4) * (gint16) 17) / 16)
-#define hamXbitToGray8(x,valx)	(((((guint32)(valx)) << (8 - (x))) * (gint16) ((1 << (x)) + 1)) / (1 << (x)))
 
 #define gray8ToHam4(g8)		((((guint16)(g8)) * 15) / 255)
 
