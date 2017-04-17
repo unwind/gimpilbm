@@ -4,7 +4,14 @@
 
 GIMPTOOL="gimptool-2.0"
 
-CFLAGS=`$(GIMPTOOL) --cflags` -Wall -Wextra -pedantic -DDEBUGLEVEL=0
+# Trust people named emil to know what works. This is rather heavily heuristical. :)
+ifeq "$(shell whoami)" "emil"
+DEVMODE=1
+else
+DEVMODE=0
+endif
+
+CFLAGS=`$(GIMPTOOL) --cflags` -std=c99 -Wall -Wextra -pedantic -DDEVMODE=$(DEVMODE) -DDEBUGLEVEL=0
 LDFLAGS=`$(GIMPTOOL) --libs`
 
 # --------------------------------------------------------------------------

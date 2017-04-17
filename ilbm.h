@@ -6,10 +6,10 @@
 #include "iff.h"
 
 #ifndef VERSION
-#  define VERSION "0.10.1"
+#  define VERSION "0.10.2"
 #endif
 
-#define PLUG_IN_VERSION "2017-03-03 (" VERSION ")"
+#define PLUG_IN_VERSION "2017-04-17 (" VERSION ")"
 
 #ifndef DEBUGLEVEL
 #  define DEBUGLEVEL	2

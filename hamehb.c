@@ -90,7 +90,7 @@ static int judgeDiffs(guint8 *offsPtr, int r2, int g2, int b2)
 	return bestPts;
 }
 
-static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint width)
+void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint width)
 {
 	/* We assume 8bit color depth per channel */
 	int	ar = -1, ag = 0, ab = 0;
@@ -108,6 +108,7 @@ static void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint 
 		const int nr = *rgbIn++;
 		const int ng = *rgbIn++;
 		const int nb = *rgbIn++;
+		printf("inspecting %02x %02x %02x\n", nr & 255, ng & 255, nb & 255);
 		if(ar != -1)
 		{
 			crp = judgeDiff(ar, ag, ab, (nr & 0xF0) * 17 / 16, ag, ab);

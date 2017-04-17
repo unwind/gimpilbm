@@ -15,6 +15,12 @@ he would appreciate that his code at least gets to live on.
 
 The first forked version was numbered 0.9.9. The current version is 0.10.1.
 
+CHANGES 0.10.2
+==============
+This is kind of an "anti-release", since it doesn't add anything new.
+
+* Disable the "Save as HAM" mode, since it's become clear it doesn't work at all (see GitHub Issue #4).
+
 CHANGES 0.10.1
 ==============
 * Fix bug that actually caused all saved images to be "slightly" corrupt, by having malformed `BODY`-type chunks.

@@ -1344,14 +1344,16 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 					gimp_pixel_rgn_init(&pixelRegion, drawable, 0, 0, width, height, TRUE, FALSE /* ? */ );
 					for(actTop = 0; actTop < height; actTop += tileHeight)
 					{
-						guint8	*data;
 						gint	scanlines;
 
 						scanlines = MIN(tileHeight, height - actTop);
 						if(VERBOSE)
+						{
+							printf("height=%d, actTop=%d, tileHeight=%d => scanlines=%d\n", height, actTop, tileHeight, scanlines);
 							printf("Processing lines%5d upto%5d (%2d)...\n", actTop, actTop + scanlines - 1, scanlines);
+						}
 						gimp_pixel_rgn_get_rect(&pixelRegion, buffer, 0, actTop, width, scanlines);
-						data = buffer;
+						const guint8 *data = buffer;
 
 						if(chunky)
 						{	/* RGB8/RGBN; IPBM is only 1 bytepp */
@@ -1364,6 +1366,33 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 								data += width * bytepp;
 							}
 							/* er.. chunk size counter? */
+						}
+						else if(outHAM != 0)
+						{
+							printf("saving %d lines as HAM ...\n", scanlines);
+							if(!alpha)
+							{
+								while(scanlines--)
+								{
+									// Need one scanline of RGB888 data for the HAM-encoder to chew on.
+									guint8 rgbtmp[3 * width], *put = rgbtmp;
+									if(cmap != NULL)
+									{
+										printf(" input has colormap, creating temporary RGB line ...\n");
+										for(guint i = 0; i < width; ++i)
+										{
+											const guint8 index = data[i];
+											*put++ = cmap[3 * index + 0];
+											*put++ = cmap[3 * index + 1];
+											*put++ = cmap[3 * index + 2];
+										}
+									}
+									const guint8 * const rgbin = cmap != NULL ? rgbtmp : data;
+									lineToHam(plane, rgbin, 3, width);
+									writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
+									data += width * bytepp;
+								}
+							}
 						}
 						else if(!outCmap)
 						{

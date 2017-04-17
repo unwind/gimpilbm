@@ -68,11 +68,13 @@ gint saveDialog(void)
 	g_signal_connect(G_OBJECT(toggle), "toggled", G_CALLBACK(saveToggleUpdate), &ilbmvals.compress);
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.compress);
 
+#if defined DEVMODE && DEVMODE == 1
 	/**** Save as HAM ****/
 	toggle = gtk_check_button_new_with_label("Save as HAM");
 	gtk_table_attach(GTK_TABLE(table), toggle, 0, 2, 3, 4, GTK_FILL, 0, 0, 0);
 	g_signal_connect(G_OBJECT(toggle), "toggled", G_CALLBACK(saveToggleUpdate), &ilbmvals.save_ham);
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(toggle), ilbmvals.save_ham);
+#endif
 
 	/**** Save chunky ****/
 	toggle = gtk_check_button_new_with_label("Save chunky (RGB8)");
