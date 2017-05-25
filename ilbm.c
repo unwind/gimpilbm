@@ -1053,7 +1053,7 @@ gint32 loadImage(const gchar *filename)
 
 /***** Saving *****/
 
-
+// Chunky to planar conversion.
 static void extractBits(guint8 *dest, const guint8 *src, gint bitnr, gint32 width, gint skipAmount)
 {
 	const guint8	mask = 1 << bitnr;
@@ -1064,11 +1064,11 @@ static void extractBits(guint8 *dest, const guint8 *src, gint bitnr, gint32 widt
 		if(*src & mask)
 			ch |= actbit;
 		actbit >>= 1;
-		if(!actbit)
+		if(actbit == 0)
 		{
-			actbit = 1 << 7;
 			*dest++ = ch;
 			ch = 0;
+			actbit = 1 << 7;
 		}
 		src += skipAmount;
 	}
@@ -1189,10 +1189,10 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 
 	/* save... */
 	{
-		GimpDrawable	*drawable = gimp_drawable_get(drawableID);
+		GimpDrawable * const drawable = gimp_drawable_get(drawableID);
 		const gint	width = drawable->width, height = drawable->height;
 		FILE		*file;
-		gint		bytepp = drawable->bpp;  /* includes alpha? */
+		const gsize	bytepp = gimp_drawable_bpp(drawableID);  /* includes alpha? */
 		/* Above: compression, what mask mode to map alpha to, */
 		gint		nPlanes = 0;
 		/* output HAM, output EHB */
@@ -1254,7 +1254,7 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 			succ = succ && iffWriteHeader(file, &chead);
 
 			if(VERBOSE)
-				printf("bytepp:%d, nPlanes:%d, ncols:%ld, alpha:%d\n", bytepp, nPlanes, cmap ? ncols : (1L << nPlanes), alpha);
+				printf("bytepp:%zu, nPlanes:%d, ncols:%ld, alpha:%d\n", (size_t) bytepp, nPlanes, cmap ? ncols : (1L << nPlanes), alpha);
 			genBMHD(&bmhd, width, height, nPlanes);
 			if(alpha)
 				bmhd.masking = mskHasMask;
@@ -1327,146 +1327,120 @@ gint saveImage(const gchar *filename, gint32 imageID, gint32 drawableID)
 				printf("bodyLenOff:%d\n", bodyLenOff);
 			iffInitHeader(&chead, ID_BODY, GUINT32_FROM_BE(0x0BADC0DE));
 			succ = succ && iffWriteHeader(file, &chead);
+
+			const gint	threshold = (gint) (opaque * ilbmvals.threshold);
+			GimpPixelRgn	pixelRegion;
+
+			gimp_pixel_rgn_init(&pixelRegion, drawable, 0, 0, width, height, FALSE, FALSE);
+			for(gint y = 0; y < height; ++y)
 			{
-				const gint	threshold = (gint) (opaque * ilbmvals.threshold);
-				const gint32	tileHeight = gimp_tile_height();
-				guint8 * const buffer = g_new(guint8, tileHeight * width * bytepp);
-				if(DEBUG)
-					printf("Using a buffer of %ld byte.\n", (long) tileHeight * width * bytepp);
-				if(buffer)
+				guchar	row[width * bytepp];	// For a 1280-pixel RGBA image, this is 5 KB! :)
+				guchar	planerow[2 * (width + 15) / 16];
+				guchar	packedrow[sizeof planerow + 16];	// No idea.
+
+//				printf("Grabbing scanline %d, %zu-byte buffer\n", y, sizeof row);
+				gimp_pixel_rgn_get_row(&pixelRegion, row, 0, y, width);
+				memset(planerow, 0, sizeof planerow);
+
+				if(chunky)
+				{	/* RGB8/RGBN; IPBM is only 1 bytepp */
+					packRGBN8(file, row, width, ID_RGBN, 0 /* alpha */);
+					/* er.. chunk size counter? */
+				}
+				else if(outHAM != 0)
 				{
-					gint		actTop;
-					GimpPixelRgn	pixelRegion;
-					guint8		*packedBuf = allocPackedBuf(BYTEPL(width), compress);
-					guint8		*plane = g_new(guint8, BYTEPL(width));
-
-					/* FIXME: check */
-					gimp_pixel_rgn_init(&pixelRegion, drawable, 0, 0, width, height, TRUE, FALSE /* ? */ );
-					for(actTop = 0; actTop < height; actTop += tileHeight)
+					guchar	hamrow[width];
+					if(!alpha)
 					{
-						gint	scanlines;
-
-						scanlines = MIN(tileHeight, height - actTop);
-						if(VERBOSE)
+						// Need one scanline of RGB888 data for the HAM-encoder to chew on.
+						guint8 rgbtmp[3 * width], *put = rgbtmp;
+						if(cmap != NULL)
 						{
-							printf("height=%d, actTop=%d, tileHeight=%d => scanlines=%d\n", height, actTop, tileHeight, scanlines);
-							printf("Processing lines%5d upto%5d (%2d)...\n", actTop, actTop + scanlines - 1, scanlines);
-						}
-						gimp_pixel_rgn_get_rect(&pixelRegion, buffer, 0, actTop, width, scanlines);
-						const guint8 *data = buffer;
-
-						if(chunky)
-						{	/* RGB8/RGBN; IPBM is only 1 bytepp */
-							while(scanlines--)
+//							printf(" input has colormap, creating temporary RGB line ...\n");
+							for(gint i = 0; i < width; ++i)
 							{
-								/* w*bpp vs. BYTEPL(width) */
-								/*writePlaneRow(fil, data, width * bytepp, compress, packedBuf);*/
-								/* FIXME: check success */
-								packRGBN8(file, data, width, ID_RGBN, 0 /* alpha */);
-								data += width * bytepp;
-							}
-							/* er.. chunk size counter? */
-						}
-						else if(outHAM != 0)
-						{
-							printf("saving %d lines as HAM ...\n", scanlines);
-							if(!alpha)
-							{
-								while(scanlines--)
-								{
-									// Need one scanline of RGB888 data for the HAM-encoder to chew on.
-									guint8 rgbtmp[3 * width], *put = rgbtmp;
-									if(cmap != NULL)
-									{
-										printf(" input has colormap, creating temporary RGB line ...\n");
-										for(guint i = 0; i < width; ++i)
-										{
-											const guint8 index = data[i];
-											*put++ = cmap[3 * index + 0];
-											*put++ = cmap[3 * index + 1];
-											*put++ = cmap[3 * index + 2];
-										}
-									}
-									const guint8 * const rgbin = cmap != NULL ? rgbtmp : data;
-									lineToHam(plane, rgbin, 3, width);
-									writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
-									data += width * bytepp;
-								}
+								const guint8 index = row[i];
+								*put++ = cmap[3 * index + 0];
+								*put++ = cmap[3 * index + 1];
+								*put++ = cmap[3 * index + 2];
 							}
 						}
-						else if(!outCmap)
+						const guint8 * const rgbin = cmap != NULL ? rgbtmp : row;
+						lineToHam(hamrow, rgbin, 3, width);
+						for(gint bitnr = 0; bitnr < 6; ++bitnr)
 						{
-							while(scanlines--)
-							{
-								/* 24bit is saved r0..r7g0..g7b0..b7 */
-								for(gint rgb = 0; rgb < (bytepp - alpha); ++rgb)
-								{
-									for(gint bitnr = 0; bitnr < bitppGray; ++bitnr)
-									{
-										extractBits(plane, data + rgb, bitnr, width, bytepp);
-										writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
-									}
-								}
-								if(alpha)
-								{
-									extractAlpha(plane, data + bytepp - byteppGray, width, bytepp, threshold);
-									writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
-								}
-								data += width * bytepp;
-							}
+							extractBits(planerow, hamrow, bitnr, width, 1); 
+							writePlaneRow(file, planerow, BYTEPL(width), compress, packedrow);
 						}
-						else
-						{
-							/* indexed or grayscale */
-							while(scanlines--)
-							{
-								for(gint bitnr = 0; bitnr < nPlanes; ++bitnr)
-								{
-									/* Write planes 0..x */
-									extractBits(plane, data, bitnr, width, byteppGray + alpha);
-									writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
-								}
-								if(alpha)
-								{
-									/* Write the extra 1 bit alpha mask per line */
-									extractAlpha(plane, data + byteppGray, width, byteppGrayA, threshold);
-									writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
-									data += width;
-								}
-								data += width;
-							}
-						}
-						gimp_progress_update((double) actTop / height);
 					}
-					freePackedBuf(packedBuf);
-
-					bodysize = ftell(file) - (bodyLenOff + 4);
-					if(VERBOSE)
-						printf("bodysize: %lu\n", (unsigned long) bodysize);
-
-					if(bodysize & 1)
+				}
+#if 0
+				else if(!outCmap)
+				{
+					while(scanlines--)
 					{
-						/* Add padding */
-						succ = succ && writeUchar(file, '\0');
+						/* 24bit is saved r0..r7g0..g7b0..b7 */
+						for(gint rgb = 0; rgb < (bytepp - alpha); ++rgb)
+						{
+							for(gint bitnr = 0; bitnr < bitppGray; ++bitnr)
+							{
+								extractBits(plane, data + rgb, bitnr, width, bytepp);
+								writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
+							}
+						}
+						if(alpha)
+						{
+							extractAlpha(plane, data + bytepp - byteppGray, width, bytepp, threshold);
+							writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
+						}
+						data += width * bytepp;
 					}
-					succ = succ && writeLongAt(file, bodysize, bodyLenOff);
-
-					bodysize = (bodysize + 1) / 2 * 2;
-					totsize += 8 + bodysize;
-					succ = succ && writeLongAt(file, totsize, 4);
-
-					if(succ)
-					{
-						rc = TRUE;
-					}
-					g_free(plane);
-					g_free(buffer);
-					gimp_progress_update(1.0);
 				}
 				else
-				{                /* buffer==0 */
+				{
+					/* indexed or grayscale */
+					while(scanlines--)
+					{
+						for(gint bitnr = 0; bitnr < nPlanes; ++bitnr)
+						{
+							/* Write planes 0..x */
+							extractBits(plane, data, bitnr, width, byteppGray + alpha);
+							writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
+						}
+						if(alpha)
+						{
+							/* Write the extra 1 bit alpha mask per line */
+							extractAlpha(plane, data + byteppGray, width, byteppGrayA, threshold);
+							writePlaneRow(file, plane, BYTEPL(width), compress, packedBuf);
+							data += width;
+						}
+						data += width;
+					}
 				}
+#endif
+				gimp_progress_update((y + 0.5) / height);
 			}
+
+			bodysize = ftell(file) - (bodyLenOff + 4);
+			if(VERBOSE)
+				printf("bodysize: %lu\n", (unsigned long) bodysize);
+
+			if(bodysize & 1)
+			{
+				/* Add padding */
+				succ = succ && writeUchar(file, '\0');
+			}
+			succ = succ && writeLongAt(file, bodysize, bodyLenOff);
+
+			bodysize = (bodysize + 1) / 2 * 2;
+			totsize += 8 + bodysize;
+			succ = succ && writeLongAt(file, totsize, 4);
+
+			if(succ)
+			{
+				rc = TRUE;
+			}
+			gimp_progress_update(1.0);
 			if(fclose(file) != 0)
 			{
 				perror("fclose()");

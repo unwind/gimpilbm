@@ -1,3 +1,6 @@
+
+#include <string.h>
+
 #include "hamehb.h"
 
 /**** EHB stuff ****/
@@ -37,16 +40,31 @@ const guint8 hamPal[16 * byteppRGB] =
 
 #define	hamPalCols (sizeof hamPal / byteppRGB)
 
+/* Compute and return distance between the two colors. The distance is simply the squared Euclidian 3D distance. */
+static guint rgbDist(const guint8 *rgbA, const guint8 *rgbB)
+{
+	const guint dr = (rgbB[0] - rgbA[0]) * (rgbB[0] - rgbA[0]);
+	const guint dg = (rgbB[1] - rgbA[1]) * (rgbB[1] - rgbA[1]);
+	const guint db = (rgbB[2] - rgbA[2]) * (rgbB[2] - rgbA[2]);
+	const guint dist = dr + dg + db;
+/*	printf("comparing 0x%02x%02x%02x vs 0x%02x%02x%02x -> dr=%u, dg=%u, db=%u -> dist=%u\n",
+		rgbA[0], rgbA[1], rgbA[2],
+		rgbB[0], rgbB[1], rgbB[2],
+		dr, dg, db, dist);
+*/	return dist;
+}
+
 /* Is r, g, or b the smallest difference? */
 static int judgeDiff(int r1, int g1, int b1, int r2, int g2, int b2)
 {
-	const int dr = abs(r1 - r2);
-	const int dg = abs(g1 - g2);
-	const int db = abs(b1 - b2);
+	const int dr = abs(r1 - r2) * abs(r1 - r2);
+	const int dg = abs(g1 - g2) * abs(g1 - g2);
+	const int db = abs(b1 - b2) * abs(b1 - b2);
 	int	pts;
 
-	/* ok, half its penalty */
-	/* calculations are mhpf.. */
+	return 3 * 255 * 255 - (dr + dg + db);
+/*
+	printf(" dr=%d, dg=%d, db=%d", dr, dg, db);
 	if(dr < dg)
 	{
 		if(dr < db)
@@ -61,23 +79,24 @@ static int judgeDiff(int r1, int g1, int b1, int r2, int g2, int b2)
 		else
 			pts = (db >> 1) + dr + dg;
 	}
+	printf(" -> pts=%d\n", pts);
 	return pts;
+*/
 }
 
 static int judgeDiffs(guint8 *offsPtr, int r2, int g2, int b2)
 {
-	int	bestPts = 256 * 3;
+	int	bestPts = 3 * 255 * 255;
 	int	bestOffs = 0;             /* Make gcc happy */
-	int	i;
 	const guchar *palPtr = hamPal + sizeof hamPal;
+	const guint8 current[] = { r2 & 0xff, g2 & 0xff, b2 & 0xff };
 
 	g_assert(offsPtr != NULL);
-	for(i = hamPalCols - 1; i >= 0; --i)
+	for(gint i = hamPalCols - 1; i >= 0; --i)
 	{
-		int aPts;
-
 		palPtr -= 3;
-		aPts = judgeDiff(*palPtr, palPtr[1], palPtr[2], r2, g2, b2);
+		const int aPts = judgeDiff(palPtr[0], palPtr[1], palPtr[2], r2, g2, b2);
+		rgbDist(palPtr, current);
 		if(aPts < bestPts)
 		{
 			bestOffs = i;
@@ -90,72 +109,98 @@ static int judgeDiffs(guint8 *offsPtr, int r2, int g2, int b2)
 	return bestPts;
 }
 
+/* Pick the color from the palette which is closest to the target, returning its distance and index. */
+static guint rgbBestFromPalette(guint *index, const guint8 *target)
+{
+	guint bestDist = G_MAXUINT;
+	for(gint i = hamPalCols - 1; i >= 0; --i)
+	{
+		const guint8 * const rgbPal = hamPal + 3 * i;
+		const guint dist = rgbDist(rgbPal, target);
+		if(dist < bestDist)
+		{
+			*index = (guint) i;
+			bestDist = dist;
+			if(bestDist == 0)
+				break;
+		}
+	}
+	return bestDist;
+}
+
+/* Compute resulting RGB color from holding current and modifying the indicated component using data from target. */
+static void rgbHam(guint8 *ham, const guint8 *current, const guint8 *target, guint component)
+{
+	for(guint i = 0; i < 3; ++i)
+	{
+		ham[i] = (i == component) ? ((target[i] & 0xf0) | (target[i] >> 4)) : current[i];
+	}
+}
+
 void lineToHam(guint8 *hamIdxOut, const guint8 *rgbIn, gint bytepp, gint width)
 {
-	/* We assume 8bit color depth per channel */
-	int	ar = -1, ag = 0, ab = 0;
-	int	crp, cgp = 0, cbp = 0;    /* Make gcc happy */
+	guint8 current[3];
 
+/*	for(gint i = 0; i < width; ++i)
+	{
+		printf("x=%d: %02x%02x%02x\n", i, rgbIn[i * bytepp + 0], rgbIn[i * bytepp + 1], rgbIn[i * bytepp + 2]);
+	}
+*/
 	g_assert(hamIdxOut != NULL);
 	g_assert(rgbIn != NULL);
 	bytepp -= 3;                  /* just need 0/1 offsets */
-	while(width--)
+	for(gint x = 0; x < width; ++x)
 	{
-		int minCpts = 256 * 3;
-		int constPts;
-		guint8 offs;
-
-		const int nr = *rgbIn++;
-		const int ng = *rgbIn++;
-		const int nb = *rgbIn++;
-		printf("inspecting %02x %02x %02x\n", nr & 255, ng & 255, nb & 255);
-		if(ar != -1)
+		guint palIndex;
+		const guint palDist = rgbBestFromPalette(&palIndex, rgbIn);
+		if(x == 0)
 		{
-			crp = judgeDiff(ar, ag, ab, (nr & 0xF0) * 17 / 16, ag, ab);
-			cgp = judgeDiff(ar, ag, ab, ar, (ng & 0xF0) * 17 / 16, ab);
-			cbp = judgeDiff(ar, ag, ab, ar, ag, (ab & 0xF0) * 17 / 16);
-			if(crp < cgp)
-			{
-				if(crp < cbp)
-					minCpts = crp;
-				else
-					minCpts = cbp;
-			}
-			else
-			{
-				if(cgp < cbp)
-					minCpts = cgp;
-				else
-					minCpts = cbp;
-			}
-		}
-		constPts = judgeDiffs(&offs, nr, ng, nb);
-		if(constPts < minCpts)
-		{
-			*hamIdxOut++ = offs;
-			ar = hamPal[offs * 3 + 0];
-			ag = hamPal[offs * 3 + 1];
-			ab = hamPal[offs * 3 + 2];
+			/* Start each new scanline with an absolute color, from the palette. */
+			memcpy(current, hamPal + 3 * palIndex, sizeof current);
+//			printf("x=%u: current set to %02x%02x%02x (index %u)\n", x, current[0], current[1], current[2], palIndex);
+			*hamIdxOut++ = (guint8) palIndex;
 		}
 		else
 		{
-			if(cbp == minCpts)     /* brg 123 */
+			/* Mid-line, decide if current pixel is best served by a palette reload, or by HAM:ing. */
+			guint	hamDist[3], hamDistMin = G_MAXUINT;
+//			printf("x=%u, have=%02x%02x%02x, want=%02x%02x%02x\n", x, current[0], current[1], current[2], rgbIn[0], rgbIn[1], rgbIn[2]);
+			for(guint i = 0; i < 3; ++i)
 			{
-				*hamIdxOut++ = 0x10 | (nb >> 4);
-				ab = (nb >> 4) * 17 / 16;
+				guint8 ham[3];
+				rgbHam(ham, current, rgbIn, i);
+				hamDist[i] = rgbDist(ham, rgbIn);
+				if(hamDist[i] < hamDistMin)
+				{
+					hamDistMin = hamDist[i];
+				}
 			}
-			else if(cgp == minCpts)
+/*			printf(" hamDist=[%u,%u,%u], hamDistMin=%u\n", hamDist[0], hamDist[1], hamDist[2], hamDistMin);
+			printf(" palDist=%u (index %u)\n", palDist, palIndex);
+*/			if(palDist < hamDistMin)
 			{
-				*hamIdxOut++ = 0x30 | (ng >> 4);
-				ag = (ng >> 4) * 17 / 16;
+				/* Don't HAM, do a full reload from palette. */
+				memcpy(current, hamPal + 3 * palIndex, sizeof current);
+				*hamIdxOut++ = (guint8) palIndex;
+//				printf("  current set to %02x%02x%02x (index %u)\n", current[0], current[1], current[2], palIndex);
 			}
 			else
 			{
-				*hamIdxOut++ = 0x20 | (nr >> 4);
-				ar = (nr >> 4) * 17 / 16;
+				const guint8 hamBits[] = { 0x20, 0x30, 0x10 };
+				for(guint i = 0; i < 3; ++i)
+				{
+					if(hamDistMin == hamDist[i])
+					{
+						*hamIdxOut++ = hamBits[i] | (rgbIn[i] >> 4);
+						current[i] = (rgbIn[i] & 0xf0) | (rgbIn[i] >> 4);
+//						printf("  current set to %02x%02x%02x by HAM on component %c\n", current[0], current[1], current[2], "RGB"[i]);
+						break;
+					}
+				}
 			}
 		}
-		if(bytepp)
+		rgbIn += 3;
+		if(bytepp)	/* Bring along the alpha, if present. */
 			*hamIdxOut++ = *rgbIn++;
 	}
 }
